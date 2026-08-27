@@ -9,13 +9,16 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            List {
+                NavigationLink {
+                    OpenMicMapView()
+                } label: {
+                    Label("Open Mic Map", systemImage: "map")
+                }
+            }
+            .navigationTitle("StageTime PNW")
         }
-        .padding()
     }
 }
 
