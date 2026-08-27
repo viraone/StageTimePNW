@@ -6,7 +6,17 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		940B420C303D2183009BC88B /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940B420B303D2183009BC88B /* SupabaseManager.swift */; };
+		940B420F303D2485009BC88B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 940B420E303D2485009BC88B /* Supabase */; };
+		940B4211303D2567009BC88B /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940B4210303D2567009BC88B /* AuthManager.swift */; };
+		940B4213303D259C009BC88B /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940B4212303D259C009BC88B /* AuthView.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		940B420B303D2183009BC88B /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
+		940B4210303D2567009BC88B /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		940B4212303D259C009BC88B /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		94E4FF69303C5166003EA75E /* StageTimePNW.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StageTimePNW.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -23,16 +33,28 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				940B420F303D2485009BC88B /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		940B420D303D2485009BC88B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		94E4FF60303C5166003EA75E = {
 			isa = PBXGroup;
 			children = (
+				940B420B303D2183009BC88B /* SupabaseManager.swift */,
+				940B4210303D2567009BC88B /* AuthManager.swift */,
+				940B4212303D259C009BC88B /* AuthView.swift */,
 				94E4FF6B303C5166003EA75E /* StageTimePNW */,
+				940B420D303D2485009BC88B /* Frameworks */,
 				94E4FF6A303C5166003EA75E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +87,7 @@
 			);
 			name = StageTimePNW;
 			packageProductDependencies = (
+				940B420E303D2485009BC88B /* Supabase */,
 			);
 			productName = StageTimePNW;
 			productReference = 94E4FF69303C5166003EA75E /* StageTimePNW.app */;
@@ -94,6 +117,9 @@
 			);
 			mainGroup = 94E4FF60303C5166003EA75E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				940B420A303D209E009BC88B /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 94E4FF6A303C5166003EA75E /* Products */;
 			projectDirPath = "";
@@ -119,6 +145,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				940B420C303D2183009BC88B /* SupabaseManager.swift in Sources */,
+				940B4213303D259C009BC88B /* AuthView.swift in Sources */,
+				940B4211303D2567009BC88B /* AuthManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +374,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		940B420A303D209E009BC88B /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		940B420E303D2485009BC88B /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 940B420A303D209E009BC88B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 94E4FF61303C5166003EA75E /* Project object */;
 }
