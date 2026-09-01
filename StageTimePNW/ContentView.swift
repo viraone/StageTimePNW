@@ -90,12 +90,11 @@ struct CustomTabBar: View {
     @Binding var selectedTab: AppTab
     
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 6) {
             // Home Tab
             TabBarButton(
                 icon: "house",
                 filledIcon: "house.fill",
-                label: "Home",
                 isSelected: selectedTab == .home
             ) {
                 selectedTab = .home
@@ -105,7 +104,6 @@ struct CustomTabBar: View {
             TabBarButton(
                 icon: "mic",
                 filledIcon: "mic.fill",
-                label: "Sign Up",
                 isSelected: selectedTab == .add,
                 accentColor: Color(red: 1.0, green: 0.35, blue: 0.35)
             ) {
@@ -116,7 +114,6 @@ struct CustomTabBar: View {
             TabBarButton(
                 icon: "list.star",
                 filledIcon: "list.star",
-                label: "Tonight List",
                 isSelected: selectedTab == .tonight
             ) {
                 selectedTab = .tonight
@@ -126,7 +123,6 @@ struct CustomTabBar: View {
             TabBarButton(
                 icon: "magnifyingglass",
                 filledIcon: "magnifyingglass",
-                label: "Search",
                 isSelected: selectedTab == .explore
             ) {
                 selectedTab = .explore
@@ -136,24 +132,22 @@ struct CustomTabBar: View {
             TabBarButton(
                 icon: "person.circle",
                 filledIcon: "person.circle.fill",
-                label: "Profile",
                 isSelected: selectedTab == .profile
             ) {
                 selectedTab = .profile
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .background(
-            Color.black
-                .overlay(
-                    // Subtle top border
-                    Rectangle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(height: 0.5),
-                    alignment: .top
-                )
+            Capsule()
+                .fill(Color(white: 0.10).opacity(0.92))
+                .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 1))
+                .shadow(color: .black.opacity(0.5), radius: 14, y: 6)
         )
+        .padding(.horizontal, 40)
+        .padding(.top, 6)
+        .padding(.bottom, 2)
     }
 }
 
@@ -161,7 +155,6 @@ struct CustomTabBar: View {
 struct TabBarButton: View {
     let icon: String
     let filledIcon: String
-    var label: String? = nil
     var isSelected: Bool
     var accentColor: Color?
     let action: () -> Void
@@ -176,23 +169,16 @@ struct TabBarButton: View {
                 action()
             }
         }) {
-            VStack(spacing: 3) {
-                Image(systemName: isSelected ? filledIcon : icon)
-                    .font(.system(size: 22, weight: .regular))
-                    .foregroundColor(isSelected ? (accentColor ?? .white) : .gray)
-                    .frame(height: 26)
-                
-                if let label {
-                    Text(label)
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundColor(isSelected ? (accentColor ?? .white) : .gray)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
+            Image(systemName: isSelected ? filledIcon : icon)
+                .font(.system(size: 21, weight: .semibold))
+                .foregroundColor(isSelected ? (accentColor ?? .white) : Color(white: 0.65))
+                .frame(width: 48, height: 48)
+                .background(
+                    Circle()
+                        .fill(isSelected ? Color(white: 0.24) : Color.clear)
+                )
         }
+        .frame(maxWidth: .infinity)
     }
 }
 
