@@ -450,6 +450,8 @@ struct OpenMicMapView: View {
     @State private var selectedFilter: MicFilter = .all
     @State private var userSelectedMicID: String?
     @State private var showDistance: Bool = false
+    @State private var tripIntelMic: OpenMic? = nil
+    @StateObject private var locationService = LocationService()
 
     /// Minutes from midnight right now, used to find the next upcoming mic.
     private var nowMinutes: Int {
@@ -538,7 +540,10 @@ struct OpenMicMapView: View {
                         Spacer(minLength: 12)
                         
                         // Show Distance Button
-                        Button(action: { showDistance.toggle() }) {
+                        Button(action: {
+                            showDistance.toggle()
+                            if showDistance { locationService.request() }
+                        }) {
                             HStack(spacing: 6) {
                                 Image(systemName: showDistance ? "location.fill" : "location")
                                     .font(.system(size: 14))
@@ -613,11 +618,19 @@ struct OpenMicMapView: View {
                 }
                 
                 // Location note
-                Text("Turn on location to see distance and drive times.")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 12)
+                if showDistance && locationService.isDenied {
+                    Text("Location access is off. Enable it in Settings → StageTimePNW to see distances.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.35))
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 12)
+                } else if !showDistance {
+                    Text("Tap Show Distance to see drive times and directions.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 12)
+                }
 
                 // Dynamic Mics List
                 if viewModel.isLoading {
@@ -646,7 +659,11 @@ struct OpenMicMapView: View {
                                     DynamicMicCard(
                                         mic: mic,
                                         isHighlighted: mic.id == highlightedID,
-                                        isNextUp: mic.id == nextUpMicID(in: micsForDay)
+                                        isNextUp: mic.id == nextUpMicID(in: micsForDay),
+                                        distanceMiles: showDistance
+                                            ? locationService.location.flatMap { TripMath.miles(from: $0, to: mic) }
+                                            : nil,
+                                        onDirections: showDistance ? { tripIntelMic = mic } : nil
                                     )
                                     .onTapGesture {
                                         withAnimation(.easeInOut(duration: 0.2)) {
@@ -666,6 +683,9 @@ struct OpenMicMapView: View {
         .refreshable {
             await viewModel.fetchMics()
         }
+        .sheet(item: $tripIntelMic) { mic in
+            TripIntelSheet(mic: mic, userLocation: locationService.location)
+        }
     }
 }
 
@@ -674,6 +694,8 @@ struct DynamicMicCard: View {
     let mic: OpenMic
     var isHighlighted: Bool = false
     var isNextUp: Bool = false
+    var distanceMiles: Double? = nil
+    var onDirections: (() -> Void)? = nil
     
     @State private var isPressed: Bool = false
 
@@ -750,6 +772,43 @@ struct DynamicMicCard: View {
                 Text(mic.location)
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.9))
+
+                // Distance + Directions (shown when Show Distance is on)
+                if let distanceMiles {
+                    HStack(spacing: 10) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 11))
+                            Text("\(String(format: "%.1f", distanceMiles)) mi · ~\(TripMath.driveMinutes(forMiles: distanceMiles)) min drive")
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundColor(Color(red: 0.05, green: 0.82, blue: 0.45))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color(red: 0.05, green: 0.82, blue: 0.45).opacity(0.12))
+                        .cornerRadius(6)
+
+                        Spacer()
+
+                        if onDirections != nil {
+                            Button(action: { onDirections?() }) {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
+                                        .font(.system(size: 11))
+                                    Text("Directions & Transit")
+                                        .font(.system(size: 12, weight: .bold))
+                                }
+                                .foregroundColor(.black)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 7)
+                                .background(Color(red: 0.05, green: 0.82, blue: 0.45))
+                                .cornerRadius(6)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.top, 2)
+                }
                 
                 // Tags
                 HStack(spacing: 8) {
