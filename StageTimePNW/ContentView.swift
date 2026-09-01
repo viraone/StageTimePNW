@@ -35,7 +35,7 @@ enum AppTab {
     case home
     case explore
     case add
-    case notifications
+    case tonight
     case profile
 }
 
@@ -80,8 +80,8 @@ struct ContentView: View {
                         ExploreView()
                     case .add:
                         HomeRickshawView(viewModel: micViewModel)
-                    case .notifications:
-                        NotificationsView()
+                    case .tonight:
+                        TonightListView()
                     case .profile:
                         ProfileView()
                     }
@@ -104,6 +104,7 @@ struct CustomTabBar: View {
             TabBarButton(
                 icon: "house",
                 filledIcon: "house.fill",
+                label: "Home",
                 isSelected: selectedTab == .home
             ) {
                 selectedTab = .home
@@ -113,6 +114,7 @@ struct CustomTabBar: View {
             TabBarButton(
                 icon: "magnifyingglass",
                 filledIcon: "magnifyingglass",
+                label: "Search",
                 isSelected: selectedTab == .explore
             ) {
                 selectedTab = .explore
@@ -122,25 +124,28 @@ struct CustomTabBar: View {
             TabBarButton(
                 icon: "mic",
                 filledIcon: "mic.fill",
+                label: "Sign Up",
                 isSelected: selectedTab == .add,
                 accentColor: Color(red: 1.0, green: 0.35, blue: 0.35)
             ) {
                 selectedTab = .add
             }
             
-            // Notifications Tab
+            // Tonight List Tab (Friday Rickshaw lineup)
             TabBarButton(
-                icon: "bell",
-                filledIcon: "bell.fill",
-                isSelected: selectedTab == .notifications
+                icon: "list.star",
+                filledIcon: "list.star",
+                label: "Tonight List",
+                isSelected: selectedTab == .tonight
             ) {
-                selectedTab = .notifications
+                selectedTab = .tonight
             }
             
             // Profile Tab
             TabBarButton(
                 icon: "person.circle",
                 filledIcon: "person.circle.fill",
+                label: "Profile",
                 isSelected: selectedTab == .profile
             ) {
                 selectedTab = .profile
@@ -165,6 +170,7 @@ struct CustomTabBar: View {
 struct TabBarButton: View {
     let icon: String
     let filledIcon: String
+    var label: String? = nil
     var isSelected: Bool
     var accentColor: Color?
     let action: () -> Void
@@ -179,14 +185,22 @@ struct TabBarButton: View {
                 action()
             }
         }) {
-            VStack(spacing: 0) {
+            VStack(spacing: 3) {
                 Image(systemName: isSelected ? filledIcon : icon)
-                    .font(.system(size: 24, weight: .regular))
+                    .font(.system(size: 22, weight: .regular))
                     .foregroundColor(isSelected ? (accentColor ?? .white) : .gray)
-                    .frame(height: 28)
+                    .frame(height: 26)
+                
+                if let label {
+                    Text(label)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(isSelected ? (accentColor ?? .white) : .gray)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 6)
         }
     }
 }
