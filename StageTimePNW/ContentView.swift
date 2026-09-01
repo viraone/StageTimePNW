@@ -597,14 +597,8 @@ struct OpenMicMapView: View {
                                     userSelectedMicID = nil
                                 }
                             }) {
-                                HStack(spacing: 6) {
-                                    // Icon for each filter
-                                    Image(systemName: filter == .comedyOnly ? "theatermasks.fill" : filter == .mix ? "music.note" : "line.3.horizontal.decrease.circle")
-                                        .font(.system(size: 12, weight: .semibold))
-                                    
-                                    Text(filter.rawValue)
-                                        .font(.system(size: 14, weight: .semibold))
-                                }
+                                Text(filter.rawValue)
+                                    .font(.system(size: 14, weight: .semibold))
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 8)
                                 .background(selectedFilter == filter ? Color(red: 1.0, green: 0.35, blue: 0.35) : Color(white: 0.12))
