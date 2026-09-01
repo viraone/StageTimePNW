@@ -110,16 +110,6 @@ struct CustomTabBar: View {
                 selectedTab = .home
             }
             
-            // Explore/Search Tab
-            TabBarButton(
-                icon: "magnifyingglass",
-                filledIcon: "magnifyingglass",
-                label: "Search",
-                isSelected: selectedTab == .explore
-            ) {
-                selectedTab = .explore
-            }
-            
             // Add/Create Tab (Signup for your app)
             TabBarButton(
                 icon: "mic",
@@ -139,6 +129,16 @@ struct CustomTabBar: View {
                 isSelected: selectedTab == .tonight
             ) {
                 selectedTab = .tonight
+            }
+            
+            // Explore/Search Tab
+            TabBarButton(
+                icon: "magnifyingglass",
+                filledIcon: "magnifyingglass",
+                label: "Search",
+                isSelected: selectedTab == .explore
+            ) {
+                selectedTab = .explore
             }
             
             // Profile Tab
