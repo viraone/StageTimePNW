@@ -520,7 +520,7 @@ struct OpenMicMapView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Header with date
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
+                    HStack(alignment: .lastTextBaseline) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("OPEN MICS TODAY")
                                 .font(.system(size: 11, weight: .bold))
@@ -531,14 +531,18 @@ struct OpenMicMapView: View {
                                 Text(fullDayName)
                                     .font(.system(size: 36, weight: .bold))
                                     .foregroundColor(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
                                 
                                 Text(formattedDate)
                                     .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(.gray)
+                                    .lineLimit(1)
+                                    .fixedSize()
                             }
                         }
                         
-                        Spacer()
+                        Spacer(minLength: 12)
                         
                         // Show Distance Button
                         Button(action: { showDistance.toggle() }) {
