@@ -501,13 +501,6 @@ struct OpenMicMapView: View {
         return formatter.string(from: Date()).uppercased()
     }
     
-    // Get full day name
-    private var fullDayName: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE"
-        return formatter.string(from: Date())
-    }
-
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -522,19 +515,11 @@ struct OpenMicMapView: View {
                                 .foregroundColor(Color(red: 0.05, green: 0.82, blue: 0.45))
                                 .tracking(1.5)
 
-                            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                Text(fullDayName)
-                                    .font(.system(size: 36, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.7)
-                                
-                                Text(formattedDate)
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.gray)
-                                    .lineLimit(1)
-                                    .fixedSize()
-                            }
+                            Text(formattedDate)
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                         }
                         
                         Spacer(minLength: 12)
