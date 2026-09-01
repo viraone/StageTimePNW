@@ -23,9 +23,20 @@ enum Weekday: String, CaseIterable, Identifiable {
     }
 }
 
+enum MicFilter: String, CaseIterable, Identifiable {
+    case all = "All"
+    case comedyOnly = "Comedy Only"
+    case mix = "Mix Mic"
+    
+    var id: String { rawValue }
+}
+
 enum AppTab {
     case home
-    case map
+    case explore
+    case add
+    case notifications
+    case profile
 }
 
 // MARK: - Main Content View
@@ -34,35 +45,149 @@ struct ContentView: View {
     @State private var selectedTab: AppTab = .home
     @StateObject private var micViewModel = OpenMicViewModel()
 
-    init() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(Color.pnwDarkBg)
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
-
     var body: some View {
-        TabView(selection: $selectedTab) {
-            // TAB 1: HOME (Rickshaw Signup with locked email)
-            NavigationStack {
-                HomeRickshawView(viewModel: micViewModel)
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Top bar with just Sign Out
+                HStack {
+                    Spacer()
+                    Button(action: { Task { await authManager.signOut() } }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .font(.system(size: 14))
+                            Text("Sign Out")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .foregroundColor(.gray)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color(white: 0.12).opacity(0.5))
+                        .cornerRadius(20)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+                
+                // Content Area
+                Group {
+                    switch selectedTab {
+                    case .home:
+                        OpenMicMapView(viewModel: micViewModel)
+                    case .explore:
+                        ExploreView()
+                    case .add:
+                        HomeRickshawView(viewModel: micViewModel)
+                    case .notifications:
+                        NotificationsView()
+                    case .profile:
+                        ProfileView()
+                    }
+                }
+                
+                // Custom Bottom Tab Bar
+                CustomTabBar(selectedTab: $selectedTab)
             }
-            .tabItem {
-                Label("Home", systemImage: "house.fill")
-            }
-            .tag(AppTab.home)
-
-            // TAB 2: OPEN MIC MAP (Dynamic directory - NO Rickshaw logo)
-            NavigationStack {
-                OpenMicMapView(viewModel: micViewModel)
-            }
-            .tabItem {
-                Label("Open Mic Map", systemImage: "map.fill")
-            }
-            .tag(AppTab.map)
         }
-        .accentColor(.pnwRedText)
+    }
+}
+
+// MARK: - Custom Bottom Tab Bar (Instagram Style)
+struct CustomTabBar: View {
+    @Binding var selectedTab: AppTab
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            // Home Tab
+            TabBarButton(
+                icon: "house",
+                filledIcon: "house.fill",
+                isSelected: selectedTab == .home
+            ) {
+                selectedTab = .home
+            }
+            
+            // Explore/Search Tab
+            TabBarButton(
+                icon: "magnifyingglass",
+                filledIcon: "magnifyingglass",
+                isSelected: selectedTab == .explore
+            ) {
+                selectedTab = .explore
+            }
+            
+            // Add/Create Tab (Signup for your app)
+            TabBarButton(
+                icon: "mic",
+                filledIcon: "mic.fill",
+                isSelected: selectedTab == .add,
+                accentColor: Color(red: 1.0, green: 0.35, blue: 0.35)
+            ) {
+                selectedTab = .add
+            }
+            
+            // Notifications Tab
+            TabBarButton(
+                icon: "bell",
+                filledIcon: "bell.fill",
+                isSelected: selectedTab == .notifications
+            ) {
+                selectedTab = .notifications
+            }
+            
+            // Profile Tab
+            TabBarButton(
+                icon: "person.circle",
+                filledIcon: "person.circle.fill",
+                isSelected: selectedTab == .profile
+            ) {
+                selectedTab = .profile
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 8)
+        .background(
+            Color.black
+                .overlay(
+                    // Subtle top border
+                    Rectangle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(height: 0.5),
+                    alignment: .top
+                )
+        )
+    }
+}
+
+// MARK: - Tab Bar Button (Instagram Style)
+struct TabBarButton: View {
+    let icon: String
+    let filledIcon: String
+    var isSelected: Bool
+    var accentColor: Color?
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: {
+            // Haptic feedback like Instagram
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
+            
+            withAnimation(.easeInOut(duration: 0.2)) {
+                action()
+            }
+        }) {
+            VStack(spacing: 0) {
+                Image(systemName: isSelected ? filledIcon : icon)
+                    .font(.system(size: 24, weight: .regular))
+                    .foregroundColor(isSelected ? (accentColor ?? .white) : .gray)
+                    .frame(height: 28)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+        }
     }
 }
 
@@ -98,17 +223,6 @@ struct HomeRickshawView: View {
                                             RickshawInfoView()
 
                                         } else {
-
-                                            // Top Bar: Sign out button
-                                            HStack {
-                                                Spacer()
-                                                Button(action: { Task { await authManager.signOut() } }) {
-                                                    Text("Sign Out")
-                                                        .font(.caption)
-                                                        .foregroundColor(.gray)
-                                                }
-                                            }
-                                            .padding(.horizontal)
 
                                             // RICKSHAW HEADER (Shown ONLY on Request Form)
                                             VStack(spacing: 8) {
@@ -340,7 +454,9 @@ struct HomeRickshawView: View {
 struct OpenMicMapView: View {
     @ObservedObject var viewModel: OpenMicViewModel
     @State private var selectedDay: Weekday = Weekday.today
+    @State private var selectedFilter: MicFilter = .all
     @State private var userSelectedMicID: String?
+    @State private var showDistance: Bool = false
 
     /// Minutes from midnight right now, used to find the next upcoming mic.
     private var nowMinutes: Int {
@@ -359,67 +475,182 @@ struct OpenMicMapView: View {
         }
         return mics.first?.id
     }
+    
+    /// Filter mics based on selected filter
+    private func filteredMics(_ mics: [OpenMic]) -> [OpenMic] {
+        switch selectedFilter {
+        case .all:
+            return mics
+        case .comedyOnly:
+            return mics.filter { mic in
+                guard let type = mic.openMicType?.lowercased() else { return false }
+                // Only pure "Comedy" - not mix mics
+                return type == "comedy" || type == "only comedy"
+            }
+        case .mix:
+            return mics.filter { mic in
+                guard let type = mic.openMicType?.lowercased() else { return false }
+                // Mix mics contain words like "mix", "variety", "music", etc.
+                return type.contains("mix") || 
+                       type.contains("variety") || 
+                       type.contains("music") ||
+                       type.contains("anything")
+            }
+        }
+    }
+    
+    // Format current date
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        return formatter.string(from: Date()).uppercased()
+    }
+    
+    // Get full day name
+    private var fullDayName: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: Date())
+    }
 
     var body: some View {
         ZStack {
-            Color.pnwDarkBg.ignoresSafeArea()
+            Color.black.ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 16) {
-                // Header (NO RICKSHAW LOGO)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("OPEN MICS TODAY")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.pnwGreen)
-                        .tracking(1)
+            VStack(alignment: .leading, spacing: 0) {
+                // Header with date
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("OPEN MICS TODAY")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(Color(red: 0.05, green: 0.82, blue: 0.45))
+                                .tracking(1.5)
 
-                    Text(selectedDay.rawValue.uppercased())
-                        .font(.largeTitle)
-                        .fontWeight(.heavy)
-                        .foregroundColor(.white)
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(fullDayName)
+                                    .font(.system(size: 36, weight: .bold))
+                                    .foregroundColor(.white)
+                                
+                                Text(formattedDate)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // Show Distance Button
+                        Button(action: { showDistance.toggle() }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: showDistance ? "location.fill" : "location")
+                                    .font(.system(size: 14))
+                                Text("Show Distance")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(Color(red: 0.05, green: 0.82, blue: 0.45))
+                            .cornerRadius(8)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
                 }
-                .padding(.horizontal)
-                .padding(.top, 10)
 
                 // Day Selector Pills
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 10) {
                         ForEach(Weekday.allCases) { day in
                             Button(action: {
-                                selectedDay = day
-                                userSelectedMicID = nil
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    selectedDay = day
+                                    userSelectedMicID = nil
+                                }
                             }) {
                                 Text(day.rawValue)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 8)
-                                    .background(selectedDay == day ? Color.pnwGreen : Color.pnwCardBg)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 10)
+                                    .background(selectedDay == day ? Color(red: 0.05, green: 0.82, blue: 0.45) : Color(white: 0.12))
                                     .foregroundColor(selectedDay == day ? .black : .white)
                                     .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.white.opacity(selectedDay == day ? 0 : 0.1), lineWidth: 1)
+                                    )
                             }
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                 }
+                
+                // Filter Pills
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(MicFilter.allCases) { filter in
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    selectedFilter = filter
+                                    userSelectedMicID = nil
+                                }
+                            }) {
+                                HStack(spacing: 6) {
+                                    // Icon for each filter
+                                    Image(systemName: filter == .comedyOnly ? "theatermasks.fill" : filter == .mix ? "music.note" : "line.3.horizontal.decrease.circle")
+                                        .font(.system(size: 12, weight: .semibold))
+                                    
+                                    Text(filter.rawValue)
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(selectedFilter == filter ? Color(red: 1.0, green: 0.35, blue: 0.35) : Color(white: 0.12))
+                                .foregroundColor(selectedFilter == filter ? .white : .gray)
+                                .cornerRadius(20)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.white.opacity(selectedFilter == filter ? 0 : 0.1), lineWidth: 1)
+                                )
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 12)
+                }
+                
+                // Location note
+                Text("Turn on location to see distance and drive times.")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 12)
 
                 // Dynamic Mics List
                 if viewModel.isLoading {
                     Spacer()
-                    ProgressView().tint(.pnwGreen).frame(maxWidth: .infinity)
+                    ProgressView().tint(Color(red: 0.05, green: 0.82, blue: 0.45)).frame(maxWidth: .infinity)
                     Spacer()
                 } else {
-                    let micsForDay = viewModel.mics(for: selectedDay)
+                    let micsForDay = filteredMics(viewModel.mics(for: selectedDay))
                     if micsForDay.isEmpty {
                         Spacer()
-                        Text("No open mics listed for \(selectedDay.rawValue).")
-                            .foregroundColor(.gray)
-                            .frame(maxWidth: .infinity)
+                        VStack(spacing: 8) {
+                            Text("No mics found")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                            Text("Try a different filter or day")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
+                        }
+                        .frame(maxWidth: .infinity)
                         Spacer()
                     } else {
                         let highlightedID = userSelectedMicID ?? nextUpMicID(in: micsForDay)
                         ScrollView {
-                            VStack(spacing: 12) {
+                            VStack(spacing: 16) {
                                 ForEach(micsForDay) { mic in
                                     DynamicMicCard(
                                         mic: mic,
@@ -433,8 +664,8 @@ struct OpenMicMapView: View {
                                     }
                                 }
                             }
-                            .padding(.horizontal)
-                            .padding(.bottom, 20)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 30)
                         }
                     }
                 }
@@ -452,73 +683,197 @@ struct DynamicMicCard: View {
     let mic: OpenMic
     var isHighlighted: Bool = false
     var isNextUp: Bool = false
+    
+    @State private var isPressed: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 0) {
+            // Badges Row - Only show "NEXT OPEN MIC" badge
             if isNextUp {
-                Label("UP NEXT", systemImage: "clock.fill")
-                    .font(.system(size: 10, weight: .heavy))
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.pnwGreen)
-                    .cornerRadius(4)
+                HStack(spacing: 8) {
+                    Text("NEXT OPEN MIC")
+                        .font(.system(size: 10, weight: .black))
+                        .tracking(0.5)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color(red: 0.05, green: 0.82, blue: 0.45))
+                        .cornerRadius(4)
+                    
+                    Spacer()
+                }
+                .padding(.bottom, 12)
             }
 
-            HStack {
-                Text(mic.name)
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                Spacer()
-                if let rec = mic.recurrenceText {
-                    Text(rec)
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.pnwGreen)
+            // Main Content
+            VStack(alignment: .leading, spacing: 12) {
+                // Title and Time
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(mic.name)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        if let rec = mic.recurrenceText {
+                            Text(rec.uppercased())
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.gray)
+                                .tracking(0.5)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Time display (show start time if available)
+                    if let startTime = mic.displayStartTime {
+                        Text(startTime)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+                
+                // Signup and Start times
+                if let displayStart = mic.displayStartTime {
+                    HStack(spacing: 4) {
+                        Text("Start")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.gray)
+                        Text(displayStart)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                }
+                
+                if let displaySignup = mic.displaySignupTime {
+                    HStack(spacing: 4) {
+                        Text("Signup")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.gray)
+                        Text(displaySignup)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                }
+                
+                // Location
+                Text(mic.location)
+                    .font(.system(size: 14))
+                    .foregroundColor(.white.opacity(0.9))
+                
+                // Tags
+                HStack(spacing: 8) {
+                    if let type = mic.openMicType, !type.isEmpty {
+                        Text(type.uppercased())
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(0.5)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color(white: 0.2))
+                            .foregroundColor(.white)
+                            .cornerRadius(4)
+                    }
+                    
+                    // Price tag from actual data
+                    if let price = mic.priceForTime, !price.isEmpty {
+                        Text(price.uppercased())
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(0.5)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color(white: 0.2))
+                            .foregroundColor(.white)
+                            .cornerRadius(4)
+                    }
+                    
+                    // Age requirement
+                    if let age = mic.ageRequirement, !age.isEmpty {
+                        Text(age.uppercased())
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(0.5)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color(white: 0.2))
+                            .foregroundColor(.white)
+                            .cornerRadius(4)
+                    }
+                }
+                
+                // Details & Rules Section
+                if let info = mic.requirementsInfo, !info.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("DETAILS & RULES")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.gray)
+                            .tracking(0.5)
+                        
+                        Text(info)
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.8))
+                            .lineSpacing(2)
+                    }
+                    .padding(.top, 4)
+                }
+                
+                // Signup details button (if web signup or signup details exist)
+                if (mic.webSignup != nil && !mic.webSignup!.isEmpty) || (mic.signupDetails != nil && !mic.signupDetails!.isEmpty) {
+                    Button(action: {
+                        // Open signup URL if available
+                        if let urlString = mic.webSignup, !urlString.isEmpty, let url = URL(string: urlString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        Text("Signup details")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color(white: 0.15))
+                            .cornerRadius(6)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                            )
+                    }
                 }
             }
-
-            if let signup = mic.timeSignupStart, !signup.isEmpty {
-                Text("Signup: \(signup)")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-            }
-
-            Text(mic.location)
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.8))
-
-            if let type = mic.openMicType, !type.isEmpty {
-                Text(type)
-                    .font(.system(size: 10, weight: .bold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.pnwRedText.opacity(0.2))
-                    .foregroundColor(.pnwRedText)
-                    .cornerRadius(4)
-            }
-
-            if let info = mic.requirementsInfo, !info.isEmpty {
-                Text(info)
-                    .font(.caption2)
-                    .foregroundColor(.gray)
-                    .padding(.top, 2)
-            }
         }
-        .padding()
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isHighlighted ? Color.pnwGreen.opacity(0.12) : Color.pnwCardBg)
-        .cornerRadius(10)
+        .background(
+            isHighlighted 
+                ? Color(red: 0.05, green: 0.82, blue: 0.45).opacity(0.08)
+                : Color(white: 0.08)
+        )
+        .cornerRadius(12)
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 12)
                 .stroke(
-                    isHighlighted ? Color.pnwGreen : Color.pnwCardBorder,
+                    isHighlighted 
+                        ? Color(red: 0.05, green: 0.82, blue: 0.45).opacity(0.5)
+                        : Color.white.opacity(0.08),
                     lineWidth: isHighlighted ? 2 : 1
                 )
         )
-        .shadow(color: isHighlighted ? Color.pnwGreen.opacity(0.35) : .clear, radius: 8)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .shadow(
+            color: isHighlighted 
+                ? Color(red: 0.05, green: 0.82, blue: 0.45).opacity(isPressed ? 0.4 : 0.2)
+                : Color.black.opacity(isPressed ? 0.3 : 0),
+            radius: isPressed ? 12 : 8,
+            y: isPressed ? 6 : 4
+        )
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         .contentShape(Rectangle())
+        .onLongPressGesture(minimumDuration: .infinity, maximumDistance: .infinity, pressing: { pressing in
+            if pressing {
+                isPressed = true
+                // Haptic feedback
+                let impact = UIImpactFeedbackGenerator(style: .medium)
+                impact.impactOccurred()
+            } else {
+                isPressed = false
+            }
+        }, perform: {})
     }
 }
 
@@ -533,3 +888,195 @@ struct PNWTextFieldStyle: TextFieldStyle {
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.12), lineWidth: 1))
     }
 }
+// MARK: - Placeholder Views for New Tabs
+
+struct ExploreView: View {
+    var body: some View {
+        ZStack {
+            Color.pnwDarkBg.ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 48))
+                    .foregroundColor(.pnwGreen)
+                
+                Text("Explore")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Text("Search and discover open mics, comedians, and venues")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+        }
+    }
+}
+
+struct NotificationsView: View {
+    var body: some View {
+        ZStack {
+            Color.pnwDarkBg.ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                Image(systemName: "bell.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.pnwGreen)
+                
+                Text("Notifications")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Text("Get updates about your signups and upcoming shows")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+        }
+    }
+}
+
+struct ProfileView: View {
+    @EnvironmentObject var authManager: AuthManager
+    
+    var body: some View {
+        ZStack {
+            Color.pnwDarkBg.ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Profile Header
+                    VStack(spacing: 12) {
+                        // Profile Picture Placeholder
+                        Circle()
+                            .fill(Color.pnwGreen)
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.black)
+                            )
+                        
+                        // Email
+                        Text(authManager.currentUser?.email ?? "Unknown User")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        // Stats Row (Instagram style)
+                        HStack(spacing: 40) {
+                            VStack(spacing: 4) {
+                                Text("12")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.white)
+                                Text("Signups")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            VStack(spacing: 4) {
+                                Text("8")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.white)
+                                Text("Performed")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            VStack(spacing: 4) {
+                                Text("5")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.white)
+                                Text("Venues")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
+                    .padding(.top, 40)
+                    
+                    // Edit Profile Button
+                    Button(action: {}) {
+                        Text("Edit Profile")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(Color(white: 0.12))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                            )
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    // Settings Options
+                    VStack(spacing: 0) {
+                        ProfileMenuItem(icon: "gear", title: "Settings")
+                        ProfileMenuItem(icon: "clock.arrow.circlepath", title: "Your Activity")
+                        ProfileMenuItem(icon: "bookmark", title: "Saved Mics")
+                        ProfileMenuItem(icon: "list.bullet", title: "Signup History")
+                    }
+                    .background(Color.pnwCardBg)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.pnwCardBorder, lineWidth: 1)
+                    )
+                    .padding(.horizontal, 20)
+                    
+                    // Sign Out Button
+                    Button(action: { Task { await authManager.signOut() } }) {
+                        Text("Sign Out")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.pnwRedText)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(Color(white: 0.12))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.pnwRedText.opacity(0.3), lineWidth: 1)
+                            )
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 40)
+                }
+            }
+        }
+    }
+}
+
+struct ProfileMenuItem: View {
+    let icon: String
+    let title: String
+    
+    var body: some View {
+        Button(action: {}) {
+            HStack(spacing: 16) {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(.white)
+                    .frame(width: 24)
+                
+                Text(title)
+                    .font(.system(size: 15))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+    }
+}
+

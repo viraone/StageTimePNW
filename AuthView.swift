@@ -1,542 +1,288 @@
 import SwiftUI
 
-struct AuthView: View {
+struct SignUpView: View {
 
     @EnvironmentObject var authManager: AuthManager
+    @Environment(\.dismiss) var dismiss
 
-    @State private var isSignUp: Bool = false
-    @State private var userName: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
-
+    @State private var isSubmitting: Bool = false
     @State private var showPassword: Bool = false
     @State private var showConfirmPassword: Bool = false
-
-    @State private var rememberMe: Bool = true
-    @State private var isSubmitting: Bool = false
-
-    @State private var localError: String? = nil
-
-    // NEW:
-    // Used after a successful Sign Up.
-    // This keeps the user on the Auth screen and tells them
-    // to verify their email before logging in.
     @State private var successMessage: String? = nil
 
     var body: some View {
 
         ZStack {
 
-            // Background: Deep dark atmospheric gradient
+            // Background: Misty forest/mountain aesthetic (matching LoginView)
             LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.10, green: 0.12, blue: 0.15),
-                    Color(red: 0.05, green: 0.05, blue: 0.07)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                colors: [
+                    Color(red: 0.42, green: 0.53, blue: 0.51),
+                    Color(red: 0.28, green: 0.38, blue: 0.38),
+                    Color(red: 0.18, green: 0.25, blue: 0.26)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
             )
             .ignoresSafeArea()
 
+            // Subtle pattern overlay
+            Color.black.opacity(0.05)
+                .ignoresSafeArea()
+
             ScrollView(showsIndicators: false) {
 
-                VStack(spacing: 22) {
+                VStack(spacing: 0) {
 
-                    Spacer(minLength: 35)
+                    Spacer(minLength: 60)
 
-                    // MARK: - STAGE TIME PNW BRANDING HEADER
+                    // MARK: - Branding Header
 
-                    VStack(spacing: 6) {
-
+                    VStack(spacing: 8) {
+                        
                         Text("STAGE TIME PNW")
-                            .font(.system(size: 28, weight: .black))
+                            .font(.system(size: 22, weight: .black))
                             .foregroundColor(.white)
                             .tracking(2)
-
-                        Text("Pacific Northwest Comedy Directory & Signups")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.gray)
                     }
+                    .padding(.bottom, 30)
 
-                    // MARK: - Subtitle
+                    // MARK: - Title
 
-                    Text(
-                        isSignUp
-                        ? "Sign up to request your open mic spot"
-                        : "Log in to request your open mic spot"
-                    )
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 4)
+                    Text("Create your account")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 32)
+                        .padding(.bottom, 30)
 
-                    // MARK: - Input Form
+                    // MARK: - Input Fields
 
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(spacing: 16) {
 
-                        // 1. User Name - Sign Up only
-
-                        if isSignUp {
-
-                            VStack(alignment: .leading, spacing: 5) {
-
-                                Text("User Name")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.8))
-
-                                CustomInputField(
-                                    placeholder: "Stage name / Full name",
-                                    text: $userName
-                                )
+                        // Email Field with Custom White Placeholder
+                        ZStack(alignment: .leading) {
+                            if email.isEmpty {
+                                Text("Email")
+                                    .foregroundColor(.white.opacity(0.5))
+                                    .font(.system(size: 15))
+                                    .padding(.horizontal, 20)
                             }
-                            .transition(
-                                .opacity.combined(
-                                    with: .move(edge: .top)
-                                )
-                            )
+                            TextField("", text: $email)
+                                .font(.system(size: 15))
+                                .foregroundColor(.white)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+                                .textContentType(.emailAddress)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
                         }
+                        .background(Color.white.opacity(0.15))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
 
-                        // 2. Email Address
-
-                        VStack(alignment: .leading, spacing: 5) {
-
-                            Text("Email")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white.opacity(0.8))
-
-                            CustomInputField(
-                                placeholder: "Email address",
-                                text: $email,
-                                keyboardType: .emailAddress,
-                                autocapitalize: false
-                            )
-                        }
-
-                        // 3. Password
-
-                        VStack(alignment: .leading, spacing: 5) {
-
-                            Text("Password")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white.opacity(0.8))
-
+                        // Password Field with Custom White Placeholder
+                        ZStack(alignment: .leading) {
+                            if password.isEmpty && !showPassword {
+                                Text("Password")
+                                    .foregroundColor(.white.opacity(0.5))
+                                    .font(.system(size: 15))
+                                    .padding(.horizontal, 20)
+                            }
+                            
                             HStack {
-
-                                if showPassword {
-
-                                    TextField(
-                                        "Password",
-                                        text: $password
-                                    )
-                                    .foregroundColor(.black)
-                                    .autocapitalization(.none)
-
-                                } else {
-
-                                    SecureField(
-                                        "Password",
-                                        text: $password
-                                    )
-                                    .foregroundColor(.black)
-                                    .autocapitalization(.none)
-                                }
-
-                                Button(
-                                    action: {
-                                        showPassword.toggle()
-                                    }
-                                ) {
-
-                                    Image(
-                                        systemName:
-                                            showPassword
-                                            ? "eye"
-                                            : "eye.slash"
-                                    )
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 16))
-                                }
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 13)
-                            .background(
-                                Color(
-                                    red: 0.85,
-                                    green: 0.86,
-                                    blue: 0.89
-                                )
-                            )
-                            .cornerRadius(8)
-                        }
-
-                        // 4. Confirm Password - Sign Up only
-
-                        if isSignUp {
-
-                            VStack(alignment: .leading, spacing: 5) {
-
-                                Text("Confirm password")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.8))
-
-                                HStack {
-
-                                    if showConfirmPassword {
-
-                                        TextField(
-                                            "Confirm password",
-                                            text: $confirmPassword
-                                        )
-                                        .foregroundColor(.black)
-                                        .autocapitalization(.none)
-
+                                Group {
+                                    if showPassword {
+                                        TextField("", text: $password)
+                                            .textContentType(.newPassword)
                                     } else {
-
-                                        SecureField(
-                                            "Confirm password",
-                                            text: $confirmPassword
-                                        )
-                                        .foregroundColor(.black)
-                                        .autocapitalization(.none)
+                                        SecureField("", text: $password)
+                                            .textContentType(.newPassword)
                                     }
-
-                                    Button(
-                                        action: {
-                                            showConfirmPassword.toggle()
-                                        }
-                                    ) {
-
-                                        Image(
-                                            systemName:
-                                                showConfirmPassword
-                                                ? "eye"
-                                                : "eye.slash"
-                                        )
-                                        .foregroundColor(.gray)
+                                }
+                                .font(.system(size: 15))
+                                .foregroundColor(.white)
+                                .autocapitalization(.none)
+                                
+                                Button(action: { showPassword.toggle() }) {
+                                    Image(systemName: showPassword ? "eye" : "eye.slash")
+                                        .foregroundColor(.white.opacity(0.6))
                                         .font(.system(size: 16))
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                        }
+                        .background(Color.white.opacity(0.15))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+
+                        // Confirm Password Field with Custom White Placeholder
+                        ZStack(alignment: .leading) {
+                            if confirmPassword.isEmpty && !showConfirmPassword {
+                                Text("Confirm Password")
+                                    .foregroundColor(.white.opacity(0.5))
+                                    .font(.system(size: 15))
+                                    .padding(.horizontal, 20)
+                            }
+                            
+                            HStack {
+                                Group {
+                                    if showConfirmPassword {
+                                        TextField("", text: $confirmPassword)
+                                            .textContentType(.newPassword)
+                                    } else {
+                                        SecureField("", text: $confirmPassword)
+                                            .textContentType(.newPassword)
                                     }
                                 }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 13)
-                                .background(
-                                    Color(
-                                        red: 0.85,
-                                        green: 0.86,
-                                        blue: 0.89
-                                    )
-                                )
-                                .cornerRadius(8)
-                            }
-                            .transition(
-                                .opacity.combined(
-                                    with: .move(edge: .top)
-                                )
-                            )
-                        }
-
-                        // 5. Remember Me & Forgot Password - Login only
-
-                        if !isSignUp {
-
-                            HStack {
-
-                                Toggle(
-                                    isOn: $rememberMe
-                                ) {
-
-                                    Text("Remember me")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.gray)
-                                }
-                                .toggleStyle(
-                                    SmallSwitchToggleStyle()
-                                )
-
-                                Spacer()
-
-                                Button(action: {}) {
-
-                                    Text("Forgot password?")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.gray)
+                                .font(.system(size: 15))
+                                .foregroundColor(.white)
+                                .autocapitalization(.none)
+                                
+                                Button(action: { showConfirmPassword.toggle() }) {
+                                    Image(systemName: showConfirmPassword ? "eye" : "eye.slash")
+                                        .foregroundColor(.white.opacity(0.6))
+                                        .font(.system(size: 16))
                                 }
                             }
-                            .padding(.top, 2)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
                         }
+                        .background(Color.white.opacity(0.15))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
                     }
-                    .padding(.horizontal, 28)
+                    .padding(.horizontal, 32)
 
                     // MARK: - Success Message
 
                     if let successMessage {
 
-                        VStack(spacing: 5) {
+                        VStack(spacing: 8) {
 
                             Image(systemName: "envelope.circle.fill")
                                 .font(.system(size: 24))
-                                .foregroundColor(
-                                    Color(
-                                        red: 0.05,
-                                        green: 0.82,
-                                        blue: 0.45
-                                    )
-                                )
+                                .foregroundColor(Color(red: 0.65, green: 0.78, blue: 0.73))
 
                             Text(successMessage)
-                                .font(
-                                    .system(
-                                        size: 14,
-                                        weight: .semibold
-                                    )
-                                )
-                                .foregroundColor(
-                                    Color(
-                                        red: 0.05,
-                                        green: 0.82,
-                                        blue: 0.45
-                                    )
-                                )
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white.opacity(0.9))
                                 .multilineTextAlignment(.center)
                         }
-                        .padding(.horizontal, 28)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 16)
                     }
 
                     // MARK: - Error Message Display
 
-                    if let error = localError ?? authManager.errorMessage {
+                    if let error = authManager.errorMessage {
 
                         Text(error)
-                            .font(.caption)
-                            .foregroundColor(.pnwRedText)
+                            .font(.system(size: 13))
+                            .foregroundColor(.red.opacity(0.9))
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 28)
+                            .padding(.horizontal, 32)
+                            .padding(.top, 16)
                     }
 
-                    // MARK: - Main Action Button
+                    // MARK: - Create Account Button
 
-                    Button(action: handleAuth) {
+                    Button(action: handleSignUp) {
 
                         if isSubmitting {
 
                             ProgressView()
                                 .tint(.white)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
+                                .padding(.vertical, 16)
 
                         } else {
 
-                            Text(
-                                isSignUp
-                                ? "Sign Up"
-                                : "Log In"
-                            )
-                            .font(
-                                .system(
-                                    size: 16,
-                                    weight: .bold
-                                )
-                            )
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                Color(
-                                    red: 0.05,
-                                    green: 0.82,
-                                    blue: 0.45
-                                )
-                            )
-                            .cornerRadius(8)
-                            .shadow(
-                                color:
-                                    Color(
-                                        red: 0.05,
-                                        green: 0.82,
-                                        blue: 0.45
-                                    )
-                                    .opacity(0.3),
-                                radius: 8,
-                                y: 4
-                            )
+                            Text("Create Account")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Color(red: 0.18, green: 0.25, blue: 0.26))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
                         }
                     }
+                    .background(Color(red: 0.65, green: 0.78, blue: 0.73))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 32)
+                    .padding(.top, 24)
                     .disabled(isSubmitting)
-                    .padding(.horizontal, 28)
-                    .padding(.top, 4)
 
-                    // MARK: - Social Login Divider
+                    // Privacy Policy Text
+                    Text("By creating an account, you accept our Privacy Policy\nand Terms of Service")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.5))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 16)
 
-                    HStack(spacing: 12) {
+                    Spacer(minLength: 40)
 
-                        Rectangle()
-                            .fill(Color.white.opacity(0.15))
-                            .frame(height: 1)
+                    // MARK: - Back to Login Link
 
-                        Text(
-                            isSignUp
-                            ? "Or sign up with"
-                            : "Or log in with"
-                        )
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
+                    HStack(spacing: 4) {
+                        Text("Already have an account?")
+                            .font(.system(size: 16))
+                            .foregroundColor(.white.opacity(0.7))
 
-                        Rectangle()
-                            .fill(Color.white.opacity(0.15))
-                            .frame(height: 1)
-                    }
-                    .padding(.horizontal, 28)
-                    .padding(.top, 6)
-
-                    // MARK: - Social Login Buttons
-
-                    HStack(spacing: 14) {
-
-                        SocialLoginButton(
-                            iconName: "g.circle.fill",
-                            label: "Google"
-                        )
-
-                        SocialLoginButton(
-                            iconName: "applelogo",
-                            label: "Apple"
-                        )
-
-                        SocialLoginButton(
-                            iconName: "f.circle.fill",
-                            label: "Facebook"
-                        )
-                    }
-                    .padding(.horizontal, 28)
-
-                    Spacer(minLength: 20)
-
-                    // MARK: - Bottom Login / Sign Up Toggle
-
-                    Button(
-                        action: {
-
-                            withAnimation(
-                                .easeInOut(duration: 0.25)
-                            ) {
-
-                                isSignUp.toggle()
-
-                                localError = nil
-                                authManager.errorMessage = nil
-
-                                // Clear previous success message
-                                // when manually switching modes.
-                                successMessage = nil
-
-                                password = ""
-                                confirmPassword = ""
-                            }
+                        Button(action: { dismiss() }) {
+                            Text("Log In")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.white)
                         }
-                    ) {
-
-                        HStack(spacing: 6) {
-
-                            Text(
-                                isSignUp
-                                ? "Already have an account?"
-                                : "Don't have an account?"
-                            )
-                            .font(
-                                .system(
-                                    size: 16,
-                                    weight: .medium
-                                )
-                            )
-                            .foregroundColor(.white)
-
-                            Text(
-                                isSignUp
-                                ? "Log In"
-                                : "Sign Up"
-                            )
-                            .font(
-                                .system(
-                                    size: 16,
-                                    weight: .black
-                                )
-                            )
-                            .foregroundColor(
-                                Color(
-                                    red: 0.05,
-                                    green: 0.82,
-                                    blue: 0.45
-                                )
-                            )
-                        }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 20)
-                        .background(
-                            Color.white.opacity(0.08)
-                        )
-                        .cornerRadius(24)
                     }
-                    .padding(.bottom, 25)
+                    .padding(.bottom, 40)
                 }
             }
         }
+        .navigationBarHidden(true)
     }
 
-    // MARK: - Handle Login / Sign Up
+    // MARK: - Handle Sign Up
 
-    private func handleAuth() {
+    private func handleSignUp() {
 
-        localError = nil
         authManager.errorMessage = nil
-
-        // Do not immediately clear the verification message
-        // on Login. This allows the user to still see the
-        // reminder after returning from Yahoo.
+        successMessage = nil
 
         let cleanEmail = email
-            .trimmingCharacters(
-                in: .whitespacesAndNewlines
-            )
+            .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
 
         guard !cleanEmail.isEmpty else {
-
-            localError = "Please enter an email address."
+            authManager.errorMessage = "Please enter your email address."
             return
         }
 
         guard !password.isEmpty else {
-
-            localError = "Please enter a password."
+            authManager.errorMessage = "Please enter a password."
             return
         }
 
-        if isSignUp {
+        guard password.count >= 6 else {
+            authManager.errorMessage = "Password must be at least 6 characters."
+            return
+        }
 
-            guard !userName
-                .trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                )
-                .isEmpty else {
-
-                localError = "Please enter your name."
-                return
-            }
-
-            guard password == confirmPassword else {
-
-                localError = "Passwords do not match."
-                return
-            }
-
-            guard password.count >= 6 else {
-
-                localError =
-                    "Password must be at least 6 characters."
-
-                return
-            }
+        guard password == confirmPassword else {
+            authManager.errorMessage = "Passwords do not match."
+            return
         }
 
         isSubmitting = true
@@ -545,174 +291,28 @@ struct AuthView: View {
 
             do {
 
-                if isSignUp {
+                try await authManager.signUp(
+                    email: cleanEmail,
+                    password: password
+                )
 
-                    try await authManager.signUp(
-                        email: cleanEmail,
-                        password: password
-                    )
+                // Account created successfully!
+                successMessage =
+                    "✅ Account created! Check \(cleanEmail) for a verification email. Click the link to verify your account."
 
-                    // SIGN UP SUCCESSFUL
-                    //
-                    // The account now exists in Supabase,
-                    // but we DO NOT send the user into Home.
-                    //
-                    // They must verify their email first.
-
-                    successMessage =
-                        "Check \(cleanEmail) for a verification link before logging in."
-
-                    // Keep their email filled in.
-                    email = cleanEmail
-
-                    // Clear password fields for security.
-                    password = ""
-                    confirmPassword = ""
-
-                    // Hide password visibility.
-                    showPassword = false
-                    showConfirmPassword = false
-
-                    // Switch the UI back to Login mode.
-                    //
-                    // The success message remains visible,
-                    // telling them to verify their email.
-                    withAnimation(
-                        .easeInOut(duration: 0.25)
-                    ) {
-
-                        isSignUp = false
-                    }
-
-                } else {
-
-                    try await authManager.signIn(
-                        email: cleanEmail,
-                        password: password
-                    )
-
-                    // If login succeeds, StageTimePNWApp.swift
-                    // will automatically switch to ContentView
-                    // because isAuthenticated becomes true.
-                }
+                // Clear password fields for security
+                password = ""
+                confirmPassword = ""
+                showPassword = false
+                showConfirmPassword = false
 
             } catch {
 
-                // AuthManager already places Supabase errors
-                // inside authManager.errorMessage.
+                // AuthManager already handles error messages
 
-                if authManager.errorMessage == nil {
-
-                    authManager.errorMessage =
-                        error.localizedDescription
-                }
             }
 
             isSubmitting = false
-        }
-    }
-}
-
-// MARK: - Reusable Light Grey Input Field
-
-struct CustomInputField: View {
-
-    let placeholder: String
-
-    @Binding var text: String
-
-    var keyboardType: UIKeyboardType = .default
-
-    var autocapitalize: Bool = true
-
-    var body: some View {
-
-        TextField(
-            placeholder,
-            text: $text
-        )
-        .font(.system(size: 15))
-        .foregroundColor(.black)
-        .keyboardType(keyboardType)
-        .autocapitalization(
-            autocapitalize
-            ? .words
-            : .none
-        )
-        .padding(.horizontal, 14)
-        .padding(.vertical, 13)
-        .background(
-            Color(
-                red: 0.85,
-                green: 0.86,
-                blue: 0.89
-            )
-        )
-        .cornerRadius(8)
-    }
-}
-
-// MARK: - Reusable Social Button
-
-struct SocialLoginButton: View {
-
-    let iconName: String
-
-    let label: String
-
-    var body: some View {
-
-        Button(
-            action: {
-
-                // Social Auth Hook
-            }
-        ) {
-
-            HStack {
-
-                Image(systemName: iconName)
-                    .font(.system(size: 18))
-                    .foregroundColor(.white)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 44)
-            .background(
-                Color.white.opacity(0.12)
-            )
-            .cornerRadius(8)
-            .overlay(
-
-                RoundedRectangle(
-                    cornerRadius: 8
-                )
-                .stroke(
-                    Color.white.opacity(0.08),
-                    lineWidth: 1
-                )
-            )
-        }
-    }
-}
-
-// MARK: - Compact Toggle Style
-
-struct SmallSwitchToggleStyle: ToggleStyle {
-
-    func makeBody(
-        configuration: Configuration
-    ) -> some View {
-
-        HStack {
-
-            Toggle(
-                "",
-                isOn: configuration.$isOn
-            )
-            .labelsHidden()
-            .scaleEffect(0.7)
-
-            configuration.label
         }
     }
 }

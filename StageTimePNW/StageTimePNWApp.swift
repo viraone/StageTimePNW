@@ -6,20 +6,31 @@ struct StageTimePNWApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if authManager.isLoading {
-                // Splash screen while checking login session
-                ZStack {
-                    Color.pnwDarkBg.ignoresSafeArea()
-                    ProgressView().tint(.pnwGreen)
+            Group {
+                if authManager.isLoading {
+                    // Splash screen while checking login session
+                    ZStack {
+                        Color.pnwDarkBg.ignoresSafeArea()
+                        ProgressView().tint(.pnwGreen)
+                    }
+                } else if authManager.isAuthenticated {
+                    // User IS logged in -> Show the main app
+                    ContentView()
+                        .environmentObject(authManager)
+                } else {
+                    // User is NOT logged in -> Show Login screen
+                    NavigationView {
+                        LoginView()
+                            .environmentObject(authManager)
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
                 }
-            } else if authManager.isAuthenticated {
-                // User IS logged in -> Show the main app
-                ContentView()
-                    .environmentObject(authManager)
-            } else {
-                // User is NOT logged in -> Show Login/Register
-                AuthView()
-                    .environmentObject(authManager)
+            }
+            // Handle deep links from email verification
+            .onOpenURL { url in
+                Task {
+                    await authManager.handleDeepLink(url: url)
+                }
             }
         }
     }

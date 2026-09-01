@@ -11,18 +11,35 @@
 		940B420F303D2485009BC88B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 940B420E303D2485009BC88B /* Supabase */; };
 		940B4211303D2567009BC88B /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940B4210303D2567009BC88B /* AuthManager.swift */; };
 		940B4213303D259C009BC88B /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940B4212303D259C009BC88B /* AuthView.swift */; };
+		948AF215304417870098D9E9 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 948AF214304417870098D9E9 /* LoginView.swift */; };
+		948AF2253044A6FF0098D9E9 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 948AF2243044A6FF0098D9E9 /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		940B420B303D2183009BC88B /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 		940B4210303D2567009BC88B /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		940B4212303D259C009BC88B /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		948AF214304417870098D9E9 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		948AF2243044A6FF0098D9E9 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		94E4FF69303C5166003EA75E /* StageTimePNW.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StageTimePNW.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		948AF21330440AE60098D9E9 /* Exceptions for "StageTimePNW" folder in "StageTimePNW" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 94E4FF68303C5166003EA75E /* StageTimePNW */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		94E4FF6B303C5166003EA75E /* StageTimePNW */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				948AF21330440AE60098D9E9 /* Exceptions for "StageTimePNW" folder in "StageTimePNW" target */,
+			);
 			path = StageTimePNW;
 			sourceTree = "<group>";
 		};
@@ -56,6 +73,8 @@
 				94E4FF6B303C5166003EA75E /* StageTimePNW */,
 				940B420D303D2485009BC88B /* Frameworks */,
 				94E4FF6A303C5166003EA75E /* Products */,
+				948AF214304417870098D9E9 /* LoginView.swift */,
+				948AF2243044A6FF0098D9E9 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -135,6 +154,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				948AF2253044A6FF0098D9E9 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,6 +167,7 @@
 			files = (
 				940B420C303D2183009BC88B /* SupabaseManager.swift in Sources */,
 				940B4213303D259C009BC88B /* AuthView.swift in Sources */,
+				948AF215304417870098D9E9 /* LoginView.swift in Sources */,
 				940B4211303D2567009BC88B /* AuthManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -279,6 +300,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StageTimePNW/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -321,6 +343,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StageTimePNW/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
