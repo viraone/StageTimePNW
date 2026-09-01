@@ -50,27 +50,6 @@ struct ContentView: View {
             Color.black.ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Top bar with just Sign Out
-                HStack {
-                    Spacer()
-                    Button(action: { Task { await authManager.signOut() } }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .font(.system(size: 14))
-                            Text("Sign Out")
-                                .font(.system(size: 14, weight: .medium))
-                        }
-                        .foregroundColor(.gray)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color(white: 0.12).opacity(0.5))
-                        .cornerRadius(20)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
-                
                 // Content Area
                 Group {
                     switch selectedTab {
