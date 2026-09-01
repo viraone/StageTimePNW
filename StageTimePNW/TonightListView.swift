@@ -416,21 +416,11 @@ struct TonightListView: View {
 
                     // MARK: Poster Header
                     VStack(spacing: 10) {
-                        Text("LIVE AT THE RICKSHAW LOUNGE")
-                            .font(.system(size: 11, weight: .heavy))
-                            .tracking(3)
-                            .foregroundColor(posterGold)
-
-                        Image("RickshawLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 70)
-
                         (Text("TONIGHT'S ")
                             .foregroundColor(.white)
                         + Text("LINEUP")
                             .foregroundColor(posterRed))
-                            .font(.system(size: 30, weight: .black))
+                            .font(.system(size: 34, weight: .black))
                             .tracking(1)
 
                         if let performing = viewModel.performingEntry {
@@ -516,18 +506,9 @@ struct TonightListView: View {
                         RoundedRectangle(cornerRadius: 14)
                             .stroke(posterGold.opacity(0.35), lineWidth: 1)
                     )
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 12)
 
-                    // MARK: Poster Footer
-                    HStack(spacing: 8) {
-                        Text("READ THE ROOM")
-                        Text("◆").foregroundColor(posterRed)
-                        Text("FRIDAY NIGHT")
-                    }
-                    .font(.system(size: 11, weight: .heavy))
-                    .tracking(2)
-                    .foregroundColor(.gray)
-                    .padding(.vertical, 24)
+                    Spacer(minLength: 24)
                 }
             }
             .refreshable {
@@ -689,7 +670,7 @@ private struct LineupRow: View {
                     }
 
                     Text(entry.name.uppercased())
-                        .font(.system(size: 16, weight: .heavy))
+                        .font(.system(size: 19, weight: .heavy))
                         .foregroundColor(isDone ? .gray.opacity(0.5) : (isPerforming ? posterRed : .white))
                         .strikethrough(isDone, color: .gray.opacity(0.4))
                         .lineLimit(1)
@@ -711,17 +692,17 @@ private struct LineupRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Text(entry.setLength ?? "—")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(isDone ? .gray.opacity(0.4) : posterGold)
                 .frame(width: 70, alignment: .trailing)
 
             Text(entry.startTime ?? "—")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(isDone ? .gray.opacity(0.4) : .gray)
                 .frame(width: 80, alignment: .trailing)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.vertical, 17)
         .background(
             isPerforming ? posterRed.opacity(0.10) :
             isOnDeck ? posterGold.opacity(0.07) : Color.clear
