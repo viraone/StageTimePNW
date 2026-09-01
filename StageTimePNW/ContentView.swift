@@ -465,13 +465,13 @@ struct OpenMicMapView: View {
     }
 
     /// The mic starting closest in time (soonest upcoming) for the selected day.
-    /// On today's list, the first mic that hasn't started yet; otherwise the
-    /// earliest mic of the day.
+    /// On today's list, the first mic that hasn't started yet — if every mic
+    /// today already started, nothing is "next". On other days, the earliest
+    /// mic of that day.
     private func nextUpMicID(in mics: [OpenMic]) -> String? {
         guard !mics.isEmpty else { return nil }
-        if selectedDay == Weekday.today,
-           let upcoming = mics.first(where: { $0.startMinutesFromMidnight >= nowMinutes }) {
-            return upcoming.id
+        if selectedDay == Weekday.today {
+            return mics.first(where: { $0.startMinutesFromMidnight >= nowMinutes })?.id
         }
         return mics.first?.id
     }
