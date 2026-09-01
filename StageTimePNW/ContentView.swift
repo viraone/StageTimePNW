@@ -822,6 +822,37 @@ struct DynamicMicCard: View {
     
     @State private var isPressed: Bool = false
 
+    struct CardLink {
+        let title: String
+        let urlString: String
+        var prominent: Bool = false
+    }
+
+    private var cardLinks: [CardLink] {
+        var links: [CardLink] = []
+        if let signup = mic.webSignup, !signup.isEmpty {
+            links.append(CardLink(title: "Sign Up Online", urlString: signup, prominent: true))
+        }
+        if let list = mic.listUrl, !list.isEmpty {
+            links.append(CardLink(title: mic.listLabel?.isEmpty == false ? mic.listLabel! : "View List", urlString: list))
+        }
+        if let site = mic.website, !site.isEmpty {
+            links.append(CardLink(title: "Website", urlString: site))
+        }
+        if let contact = mic.contact, !contact.isEmpty {
+            let title: String
+            if contact.contains("instagram.com") { title = "Instagram" }
+            else if contact.contains("facebook.com") { title = "Facebook" }
+            else { title = "Contact" }
+            links.append(CardLink(title: title, urlString: contact))
+        }
+        if let phone = mic.phone, !phone.isEmpty {
+            let digits = phone.filter { $0.isNumber }
+            links.append(CardLink(title: "Call \(phone)", urlString: "tel://\(digits)"))
+        }
+        return links
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Badges Row - Only show "NEXT OPEN MIC" badge
@@ -891,10 +922,17 @@ struct DynamicMicCard: View {
                     }
                 }
                 
-                // Location
-                Text(mic.location)
-                    .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.9))
+                // Venue + Location
+                VStack(alignment: .leading, spacing: 2) {
+                    if let venue = mic.venue, !venue.isEmpty {
+                        Text(venue)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    Text(mic.location)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.9))
+                }
 
                 // Distance + Directions (shown when Show Distance is on)
                 if let distanceMiles {
@@ -969,6 +1007,57 @@ struct DynamicMicCard: View {
                             .foregroundColor(.white)
                             .cornerRadius(4)
                     }
+
+                    // Signup type (in-person / online)
+                    if let signup = mic.signupType, !signup.isEmpty {
+                        Text(signup.uppercased())
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(0.5)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color(white: 0.2))
+                            .foregroundColor(.white)
+                            .cornerRadius(4)
+                    }
+
+                    // Wheelchair accessible
+                    if mic.wheelchairAccessible == true {
+                        Text("♿ ACCESSIBLE")
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(0.5)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color(white: 0.2))
+                            .foregroundColor(.white)
+                            .cornerRadius(4)
+                    }
+                }
+
+                // Host
+                if let host = mic.host, !host.isEmpty {
+                    HStack(spacing: 4) {
+                        Text("Host")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.gray)
+                        Text(host)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                }
+
+                // Signup details text
+                if let details = mic.signupDetails, !details.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SIGNUP")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.gray)
+                            .tracking(0.5)
+                        Text(details)
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.8))
+                            .lineSpacing(2)
+                    }
+                    .padding(.top, 2)
                 }
                 
                 // Details & Rules Section
@@ -987,26 +1076,34 @@ struct DynamicMicCard: View {
                     .padding(.top, 4)
                 }
                 
-                // Signup details button (if web signup or signup details exist)
-                if (mic.webSignup != nil && !mic.webSignup!.isEmpty) || (mic.signupDetails != nil && !mic.signupDetails!.isEmpty) {
-                    Button(action: {
-                        // Open signup URL if available
-                        if let urlString = mic.webSignup, !urlString.isEmpty, let url = URL(string: urlString) {
-                            UIApplication.shared.open(url)
+                // Link buttons: signup / list / website / contact / call
+                let linkButtons = cardLinks
+                if !linkButtons.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(linkButtons, id: \.title) { link in
+                                Button(action: {
+                                    if let url = URL(string: link.urlString) {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }) {
+                                    Text(link.title)
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(link.prominent ? .black : .white)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                        .background(link.prominent ? Color(red: 0.05, green: 0.82, blue: 0.45) : Color(white: 0.15))
+                                        .cornerRadius(6)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(Color.white.opacity(link.prominent ? 0 : 0.1), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
-                    }) {
-                        Text("Signup details")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color(white: 0.15))
-                            .cornerRadius(6)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                            )
                     }
+                    .padding(.top, 4)
                 }
             }
         }
