@@ -450,6 +450,22 @@ struct OpenMicMapView: View {
     @State private var showDistance: Bool = false
     @State private var tripIntelMic: OpenMic? = nil
     @StateObject private var locationService = LocationService()
+    @ObservedObject private var barkMC = BarkMCService.shared
+
+    /// The actual calendar date of the selected day tab (today or next occurrence).
+    private var selectedDayDate: Date {
+        let todayIndex = Calendar.current.component(.weekday, from: Date()) - 1
+        guard let targetIndex = Weekday.allCases.firstIndex(of: selectedDay) else { return Date() }
+        let offset = (targetIndex - todayIndex + 7) % 7
+        return Calendar.current.date(byAdding: .day, value: offset, to: Date()) ?? Date()
+    }
+
+    /// Live MC host override (Tacoma Comedy downtown pulls its MC from
+    /// Bark Entertainment's monthly list via OCR).
+    private func hostOverride(for mic: OpenMic) -> String? {
+        guard mic.id == BarkMCService.tacomaDowntownMicID else { return nil }
+        return barkMC.mc(for: selectedDayDate)
+    }
 
     /// Minutes from midnight right now, used to find the next upcoming mic.
     private var nowMinutes: Int {
@@ -647,9 +663,15 @@ struct OpenMicMapView: View {
                                             distanceMiles: showDistance
                                                 ? locationService.location.flatMap { TripMath.miles(from: $0, to: mic) }
                                                 : nil,
-                                            onDirections: showDistance ? { tripIntelMic = mic } : nil
+                                            onDirections: showDistance ? { tripIntelMic = mic } : nil,
+                                            hostOverride: hostOverride(for: mic)
                                         )
                                         .id(mic.id)
+                                        .onAppear {
+                                            if mic.id == BarkMCService.tacomaDowntownMicID {
+                                                barkMC.fetchMC(for: selectedDayDate)
+                                            }
+                                        }
                                         .onTapGesture {
                                             withAnimation(.easeInOut(duration: 0.2)) {
                                                 userSelectedMicID = mic.id
@@ -805,6 +827,7 @@ struct DynamicMicCard: View {
     var isNextUp: Bool = false
     var distanceMiles: Double? = nil
     var onDirections: (() -> Void)? = nil
+    var hostOverride: String? = nil
     
     @State private var isPressed: Bool = false
 
@@ -1020,7 +1043,7 @@ struct DynamicMicCard: View {
                 }
 
                 // Host
-                if let host = mic.host, !host.isEmpty {
+                if let host = hostOverride ?? (mic.host?.isEmpty == false ? mic.host : nil) {
                     HStack(spacing: 4) {
                         Text("Host")
                             .font(.system(size: 13, weight: .semibold))
@@ -1028,6 +1051,15 @@ struct DynamicMicCard: View {
                         Text(host)
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.white)
+                        if hostOverride != nil {
+                            Text("MC")
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundColor(.black)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color(red: 0.05, green: 0.82, blue: 0.45))
+                                .cornerRadius(3)
+                        }
                     }
                 }
 
