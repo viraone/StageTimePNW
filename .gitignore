@@ -1,0 +1,52 @@
+# Xcode user-specific files
+xcuserdata/
+*.xcuserstate
+
+# Xcode workspace shared data (usually not needed)
+*.xcworkspace/xcshareddata/
+
+# Build files
+build/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# CocoaPods
+Pods/
+*.xcworkspace
+
+# Carthage
+Carthage/Build/
+
+# Accio dependency management
+Dependencies/
+.accio/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code Injection
+iOSInjectionProject/
+
+# macOS
+.DS_Store
+
+# Playground support
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager Package.resolved (uncomment if needed)
+# Package.resolved
+
+# Environment variables (if you use them)
+.env
+.env.local
