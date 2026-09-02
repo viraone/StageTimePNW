@@ -15,25 +15,6 @@ struct RickshawInfoView: View {
 
                 VStack(spacing: 18) {
 
-                    // MARK: - Top Bar
-
-                    HStack {
-
-                        Spacer()
-
-                        Button {
-                            Task {
-                                await authManager.signOut()
-                            }
-                        } label: {
-                            Text("Sign Out")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-
                     // MARK: - Rickshaw Header
 
                     VStack(spacing: 8) {

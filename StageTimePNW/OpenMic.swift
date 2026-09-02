@@ -25,10 +25,24 @@ struct OpenMic: Codable, Identifiable {
     let recurrence: Recurrence?
     let latitude: Double?
     let longitude: Double?
+    let venue: String?
+    let website: String?
+    let phone: String?
+    let wheelchairAccessible: Bool?
+    let showWhenInactive: Bool?
+    let listLabel: String?
+    let listUrl: String?
+    let listSourceUrl: String?
+    let source: Source?
 
     struct Recurrence: Codable {
         let type: String?
         let weekday: String?
+    }
+
+    struct Source: Codable {
+        let name: String?
+        let url: String?
     }
 
     func isActive(on day: Weekday) -> Bool {

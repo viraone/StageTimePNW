@@ -1,4 +1,63 @@
 import SwiftUI
+import Security
+
+// MARK: - Saved Credentials Helper (Keychain for password, UserDefaults for email)
+enum SavedCredentials {
+
+    private static let rememberKey = "rememberMeEnabled"
+    private static let emailKey = "rememberedEmail"
+    private static let keychainAccount = "stagetimepnw.login.password"
+
+    static var isEnabled: Bool {
+        UserDefaults.standard.bool(forKey: rememberKey)
+    }
+
+    static var savedEmail: String {
+        UserDefaults.standard.string(forKey: emailKey) ?? ""
+    }
+
+    static var savedPassword: String {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: keychainAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let password = String(data: data, encoding: .utf8) else { return "" }
+        return password
+    }
+
+    static func save(email: String, password: String) {
+        UserDefaults.standard.set(true, forKey: rememberKey)
+        UserDefaults.standard.set(email, forKey: emailKey)
+
+        let passwordData = Data(password.utf8)
+        let baseQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: keychainAccount
+        ]
+        // Delete any existing entry, then add fresh
+        SecItemDelete(baseQuery as CFDictionary)
+        var addQuery = baseQuery
+        addQuery[kSecValueData as String] = passwordData
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    static func clear() {
+        UserDefaults.standard.set(false, forKey: rememberKey)
+        UserDefaults.standard.removeObject(forKey: emailKey)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: keychainAccount
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+}
 
 struct LoginView: View {
     
@@ -8,6 +67,7 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var isSubmitting: Bool = false
     @State private var showPassword: Bool = false
+    @State private var rememberMe: Bool = false
     
     var body: some View {
         
@@ -115,15 +175,30 @@ struct LoginView: View {
                                 .stroke(Color.white.opacity(0.2), lineWidth: 1)
                         )
                         
-                        // Forgot Password
-                        Button(action: {}) {
-                            Text("Forgot password?")
-                                .font(.system(size: 13))
-                                .foregroundColor(.white.opacity(0.7))
+                        // Remember Me + Forgot Password
+                        HStack {
+                            Button(action: { rememberMe.toggle() }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: rememberMe ? "checkmark.square.fill" : "square")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(rememberMe ? Color(red: 0.65, green: 0.78, blue: 0.73) : .white.opacity(0.6))
+                                    Text("Remember me")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                            }
+                            .accessibilityIdentifier("signin_remember_me_toggle")
+
+                            Spacer()
+
+                            Button(action: {}) {
+                                Text("Forgot password?")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.white.opacity(0.7))
+                            }
+                            .accessibilityIdentifier("signin_forgot_password_button")
                         }
-                        .frame(maxWidth: .infinity, alignment: .trailing)
                         .padding(.top, 4)
-                        .accessibilityIdentifier("signin_forgot_password_button")
                     }
                     .padding(.horizontal, 32)
                     
@@ -257,6 +332,16 @@ struct LoginView: View {
             }
         }
         .navigationBarHidden(true)
+        .onAppear(perform: loadSavedCredentials)
+    }
+
+    // MARK: - Load Saved Credentials
+
+    private func loadSavedCredentials() {
+        guard SavedCredentials.isEnabled else { return }
+        rememberMe = true
+        if email.isEmpty { email = SavedCredentials.savedEmail }
+        if password.isEmpty { password = SavedCredentials.savedPassword }
     }
     
     // MARK: - Handle Login
@@ -289,6 +374,15 @@ struct LoginView: View {
                     email: cleanEmail,
                     password: password
                 )
+                
+                // Persist or clear credentials based on the checkbox
+                if authManager.isAuthenticated {
+                    if rememberMe {
+                        SavedCredentials.save(email: cleanEmail, password: password)
+                    } else {
+                        SavedCredentials.clear()
+                    }
+                }
                 
                 // If login succeeds, StageTimePNWApp.swift
                 // will automatically switch to ContentView
