@@ -1,147 +1,128 @@
 import Foundation
 import SwiftUI
 import Combine
-import Supabase
+import OSLog
 
 @MainActor
-class OpenMicViewModel: ObservableObject {
+final class OpenMicViewModel: ObservableObject {
 
-    // MARK: - Existing Open Mic Data
+    // MARK: - Directory
 
-    @Published var allMics: [OpenMic] = []
-    @Published var isLoading: Bool = false
+    @Published private(set) var allMics: [OpenMic] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var loadError: String?
 
-    // MARK: - Rickshaw Signup State
+    // MARK: - Rickshaw signup
 
-    @Published var hasActiveSignup: Bool = false
-    @Published var isCheckingSignup: Bool = false
+    @Published private(set) var hasActiveSignup = false
+    @Published private(set) var isCheckingSignup = false
+    @Published private(set) var isSubmittingSignup = false
+    @Published private(set) var signupError: String?
+    @Published private(set) var showSubmissionToast = false
 
-    // We'll use this later for the 3-second confirmation popup.
-    @Published var showSubmissionToast: Bool = false
+    private let micRepository: OpenMicRepository
+    private let signupRepository: SignupRepository
+    private let toastDuration: Duration
 
-    private let jsonURL = URL(
-        string: "https://stagetimepnw.com/data/open-mics.json"
-    )!
-
-    init() {
-        Task {
-            await fetchMics()
+    init(
+        micRepository: OpenMicRepository = RemoteOpenMicRepository(),
+        signupRepository: SignupRepository = SupabaseSignupRepository(),
+        toastDuration: Duration = .seconds(3),
+        loadOnInit: Bool = true
+    ) {
+        self.micRepository = micRepository
+        self.signupRepository = signupRepository
+        self.toastDuration = toastDuration
+        if loadOnInit {
+            Task { await fetchMics() }
         }
     }
 
-    // MARK: - Fetch Open Mic Directory
+    // MARK: - Directory
 
     func fetchMics() async {
-
         isLoading = true
+        loadError = nil
+        defer { isLoading = false }
 
         do {
-
-            let (data, response) = try await URLSession.shared.data(
-                from: jsonURL
-            )
-
-            guard
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.statusCode == 200
-            else {
-                isLoading = false
-                return
-            }
-
-            let decoder = JSONDecoder()
-
-            self.allMics = try decoder.decode(
-                [OpenMic].self,
-                from: data
-            )
-
+            allMics = try await micRepository.fetchMics()
         } catch {
-
-            print("Failed to fetch live JSON: \(error)")
+            loadError = error.localizedDescription
+            Log.openMics.error("Failed to fetch open mics: \(error.localizedDescription, privacy: .public)")
         }
-
-        isLoading = false
     }
 
-    // MARK: - Filter Mics by Day (Sorted Chronologically)
+    /// Mics active on `day`, ordered by start time.
+    func mics(for day: Weekday) -> [OpenMic] {
+        allMics
+            .filter { $0.isActive(on: day) }
+            .sorted { $0.startMinutesFromMidnight < $1.startMinutesFromMidnight }
+    }
 
-        func mics(for day: Weekday) -> [OpenMic] {
+    // MARK: - Signup
 
-            allMics
-                .filter { $0.isActive(on: day) }
-                .sorted { $0.startMinutesFromMidnight < $1.startMinutesFromMidnight }
-        }
-
-    // MARK: - Check Current User's Rickshaw Signup
-
-    func checkActiveSignup() async {
-
-        isCheckingSignup = true
-
-        defer {
-            isCheckingSignup = false
-        }
-
-        do {
-
-            // Get the currently logged-in Supabase user.
-            let session = try await supabase.auth.session
-            let userID = session.user.id
-
-            // Query public.signups for a row attached
-            // to this authenticated user's UUID.
-            let response: [SignupLookupRow] = try await supabase
-                .from("signups")
-                .select("id")
-                .eq("auth_user_id", value: userID.uuidString)
-                .limit(1)
-                .execute()
-                .value
-
-            // If we found at least one row,
-            // this user already has an active request.
-            hasActiveSignup = !response.isEmpty
-
-        } catch {
-
-            print("Failed to check active signup: \(error)")
-
-            // If the query fails, do NOT assume the user
-            // has submitted.
+    func checkActiveSignup(for user: AuthUser?) async {
+        guard let user else {
             hasActiveSignup = false
+            return
+        }
+        isCheckingSignup = true
+        defer { isCheckingSignup = false }
+
+        do {
+            hasActiveSignup = try await signupRepository.hasActiveSignup(userID: user.id)
+        } catch {
+            // Never assume the user has already submitted if the lookup fails.
+            hasActiveSignup = false
+            Log.openMics.error("Signup lookup failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
-    // MARK: - Called After Successful Request Submission
-
-    func markSignupSubmitted() {
-
-        hasActiveSignup = true
-    }
-
-    
-    // MARK: - Show 3-Second Submission Toast
-
-    func showSuccessfulSubmissionToast() async {
-
-        withAnimation(.easeInOut(duration: 0.25)) {
-            showSubmissionToast = true
+    /// Submits a slot request for `user`. Returns true on success.
+    @discardableResult
+    func submitSignup(
+        for user: AuthUser?,
+        stageName: String,
+        instagram: String,
+        performedBefore: Bool,
+        noShowAgreement: Bool,
+        guaranteeAgreement: Bool
+    ) async -> Bool {
+        guard let user, let email = user.email else {
+            signupError = RepositoryError.notAuthenticated.errorDescription
+            return false
         }
+        isSubmittingSignup = true
+        signupError = nil
+        defer { isSubmittingSignup = false }
 
-        try? await Task.sleep(
-            for: .seconds(3)
+        let request = SignupRequest(
+            name: stageName.trimmingCharacters(in: .whitespaces),
+            email: email,
+            instagram: instagram,
+            performedBefore: performedBefore,
+            noShowAgreement: noShowAgreement,
+            guaranteeAgreement: guaranteeAgreement,
+            isVerified: true, // signed-in app users are auto-verified
+            authUserID: user.id
         )
 
-        withAnimation(.easeInOut(duration: 0.25)) {
-            showSubmissionToast = false
+        do {
+            try await signupRepository.submit(request)
+            hasActiveSignup = true
+            Task { await showSuccessfulSubmissionToast() }
+            return true
+        } catch {
+            signupError = error.localizedDescription
+            Log.openMics.error("Signup submit failed: \(error.localizedDescription, privacy: .public)")
+            return false
         }
     }
-}
 
-// MARK: - Minimal Signup Lookup Model
-
-private struct SignupLookupRow: Decodable {
-
-    let id: Int
+    func showSuccessfulSubmissionToast() async {
+        withAnimation(.easeInOut(duration: 0.25)) { showSubmissionToast = true }
+        try? await Task.sleep(for: toastDuration)
+        withAnimation(.easeInOut(duration: 0.25)) { showSubmissionToast = false }
+    }
 }
