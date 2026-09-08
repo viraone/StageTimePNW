@@ -302,6 +302,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StageTimePNW uses your location to show distance, drive times, and transit options to nearby open mics.";
 				INFOPLIST_FILE = StageTimePNW/Info.plist;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StageTimePNW uses your location to show distance, drive times, and transit options to nearby open mics.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -346,6 +347,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StageTimePNW uses your location to show distance, drive times, and transit options to nearby open mics.";
 				INFOPLIST_FILE = StageTimePNW/Info.plist;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StageTimePNW uses your location to show distance, drive times, and transit options to nearby open mics.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

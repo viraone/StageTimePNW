@@ -17,238 +17,331 @@ struct SignUpView: View {
 
         ZStack {
 
-            // Background: Misty forest/mountain aesthetic (matching LoginView)
-            LinearGradient(
-                colors: [
-                    Color(red: 0.42, green: 0.53, blue: 0.51),
-                    Color(red: 0.28, green: 0.38, blue: 0.38),
-                    Color(red: 0.18, green: 0.25, blue: 0.26)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            // Background: Beautiful blue/purple mountain aesthetic
+            ZStack {
+                // Base gradient - Deep blue to purple
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.35, green: 0.45, blue: 0.65), // Soft blue
+                        Color(red: 0.25, green: 0.35, blue: 0.55), // Medium blue
+                        Color(red: 0.15, green: 0.20, blue: 0.40), // Deep navy
+                        Color(red: 0.12, green: 0.15, blue: 0.30)  // Dark navy/purple
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                
+                // Add depth with radial highlights
+                RadialGradient(
+                    colors: [
+                        Color.white.opacity(0.08),
+                        Color.clear
+                    ],
+                    center: .top,
+                    startRadius: 50,
+                    endRadius: 500
+                )
+                
+                // Subtle overlay for texture
+                Color.black.opacity(0.15)
+            }
             .ignoresSafeArea()
 
-            // Subtle pattern overlay
-            Color.black.opacity(0.05)
-                .ignoresSafeArea()
-
-            ScrollView(showsIndicators: false) {
-
-                VStack(spacing: 0) {
-
-                    Spacer(minLength: 60)
-
-                    // MARK: - Branding Header
-
-                    VStack(spacing: 8) {
-                        
-                        Text("STAGE TIME PNW")
-                            .font(.system(size: 22, weight: .black))
-                            .foregroundColor(.white)
-                            .tracking(2)
-                    }
-                    .padding(.bottom, 30)
-
-                    // MARK: - Title
-
-                    Text("Create your account")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 32)
-                        .padding(.bottom, 30)
-
-                    // MARK: - Input Fields
-
-                    VStack(spacing: 16) {
-
-                        // Email Field with Custom White Placeholder
-                        ZStack(alignment: .leading) {
-                            if email.isEmpty {
-                                Text("Email")
-                                    .foregroundColor(.white.opacity(0.5))
-                                    .font(.system(size: 15))
-                                    .padding(.horizontal, 20)
-                            }
-                            TextField("", text: $email)
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                                .textContentType(.emailAddress)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
+            VStack(spacing: 0) {
+                
+                // MARK: - Back Button
+                
+                HStack {
+                    Button(action: { dismiss() }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Back")
+                                .font(.system(size: 17, weight: .regular))
                         }
-                        .background(Color.white.opacity(0.15))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                        )
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                
+                ScrollView(showsIndicators: false) {
 
-                        // Password Field with Custom White Placeholder
-                        ZStack(alignment: .leading) {
-                            if password.isEmpty && !showPassword {
-                                Text("Password")
-                                    .foregroundColor(.white.opacity(0.5))
-                                    .font(.system(size: 15))
-                                    .padding(.horizontal, 20)
-                            }
+                    VStack(spacing: 0) {
+
+                        Spacer(minLength: 20)
+
+                        // MARK: - Hero Section
+
+                        VStack(spacing: 16) {
                             
-                            HStack {
-                                Group {
-                                    if showPassword {
-                                        TextField("", text: $password)
-                                            .textContentType(.newPassword)
-                                    } else {
-                                        SecureField("", text: $password)
-                                            .textContentType(.newPassword)
-                                    }
-                                }
-                                .font(.system(size: 15))
+                            Text("STAGE TIME PNW")
+                                .font(.system(size: 22, weight: .thin, design: .default))
                                 .foregroundColor(.white)
-                                .autocapitalization(.none)
+                                .tracking(4)
+                        }
+                        .padding(.bottom, 40)
+
+                    // MARK: - Form Content
+
+                    VStack(spacing: 24) {
+                        
+                        // Title
+                        Text("Create your account")
+                            .font(.system(size: 28, weight: .thin))
+                            .foregroundColor(.white)
+
+                        // MARK: - Input Fields
+
+                        VStack(spacing: 14) {
+
+                            // Email Field with Icon
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .frame(width: 20)
+                                
+                                ZStack(alignment: .leading) {
+                                    if email.isEmpty {
+                                        Text("Email address")
+                                            .foregroundColor(.white.opacity(0.5))
+                                            .font(.system(size: 15))
+                                    }
+                                    TextField("", text: $email)
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.white)
+                                        .keyboardType(.emailAddress)
+                                        .autocapitalization(.none)
+                                        .textContentType(.emailAddress)
+                                        .accessibilityIdentifier("signup_email_input")
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(Color.white.opacity(0.12))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
+
+                            // Password Field with Icon
+                            HStack(spacing: 12) {
+                                Image(systemName: "lock")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .frame(width: 20)
+                                
+                                ZStack(alignment: .leading) {
+                                    if password.isEmpty && !showPassword {
+                                        Text("Password (min. 6 characters)")
+                                            .foregroundColor(.white.opacity(0.5))
+                                            .font(.system(size: 15))
+                                    }
+                                    
+                                    TextField("", text: $password)
+                                        .textContentType(.newPassword)
+                                        .accessibilityIdentifier("signup_password_input")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.white)
+                                        .autocapitalization(.none)
+                                }
                                 
                                 Button(action: { showPassword.toggle() }) {
-                                    Image(systemName: showPassword ? "eye" : "eye.slash")
-                                        .foregroundColor(.white.opacity(0.6))
-                                        .font(.system(size: 16))
+                                    Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.white.opacity(0.5))
                                 }
                             }
                             .padding(.horizontal, 20)
-                            .padding(.vertical, 16)
-                        }
-                        .background(Color.white.opacity(0.15))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                        )
+                            .padding(.vertical, 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(Color.white.opacity(0.12))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
 
-                        // Confirm Password Field with Custom White Placeholder
-                        ZStack(alignment: .leading) {
-                            if confirmPassword.isEmpty && !showConfirmPassword {
-                                Text("Confirm Password")
-                                    .foregroundColor(.white.opacity(0.5))
-                                    .font(.system(size: 15))
-                                    .padding(.horizontal, 20)
-                            }
-                            
-                            HStack {
-                                Group {
-                                    if showConfirmPassword {
-                                        TextField("", text: $confirmPassword)
-                                            .textContentType(.newPassword)
-                                    } else {
-                                        SecureField("", text: $confirmPassword)
-                                            .textContentType(.newPassword)
+                            // Confirm Password Field with Icon
+                            HStack(spacing: 12) {
+                                Image(systemName: "lock.shield")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .frame(width: 20)
+                                
+                                ZStack(alignment: .leading) {
+                                    if confirmPassword.isEmpty && !showConfirmPassword {
+                                        Text("Confirm password")
+                                            .foregroundColor(.white.opacity(0.5))
+                                            .font(.system(size: 15))
                                     }
+                                    
+                                    TextField("", text: $confirmPassword)
+                                        .textContentType(.newPassword)
+                                        .accessibilityIdentifier("signup_confirm_password_input")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.white)
+                                        .autocapitalization(.none)
                                 }
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .autocapitalization(.none)
                                 
                                 Button(action: { showConfirmPassword.toggle() }) {
-                                    Image(systemName: showConfirmPassword ? "eye" : "eye.slash")
-                                        .foregroundColor(.white.opacity(0.6))
-                                        .font(.system(size: 16))
+                                    Image(systemName: showConfirmPassword ? "eye.fill" : "eye.slash.fill")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.white.opacity(0.5))
                                 }
                             }
                             .padding(.horizontal, 20)
-                            .padding(.vertical, 16)
+                            .padding(.vertical, 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(Color.white.opacity(0.12))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
                         }
-                        .background(Color.white.opacity(0.15))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+
+                        // MARK: - Success Message
+
+                        if let successMessage {
+
+                            VStack(spacing: 10) {
+
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(Color(red: 0.50, green: 0.60, blue: 0.80))
+
+                                Text(successMessage)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.95))
+                                    .multilineTextAlignment(.center)
+                                    .lineSpacing(3)
+                            }
+                            .padding(20)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(red: 0.50, green: 0.60, blue: 0.80).opacity(0.15))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color(red: 0.50, green: 0.60, blue: 0.80).opacity(0.3), lineWidth: 1)
+                                    )
+                            )
+                            .padding(.top, 8)
+                            .accessibilityIdentifier("signup_success_message")
+                        }
+
+                        // MARK: - Error Message Display
+
+                        if let error = authManager.errorMessage {
+
+                            HStack(spacing: 10) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.red.opacity(0.9))
+                                
+                                Text(error)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.red.opacity(0.95))
+                                    .multilineTextAlignment(.leading)
+                            }
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.red.opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                    )
+                            )
+                            .padding(.top, 8)
+                            .accessibilityIdentifier("signup_error_message")
+                        }
+
+                        // MARK: - Create Account Button
+
+                        Button(action: handleSignUp) {
+
+                            if isSubmitting {
+
+                                ProgressView()
+                                    .tint(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 18)
+
+                            } else {
+
+                                HStack(spacing: 8) {
+                                    Text("Create Account")
+                                        .font(.system(size: 17, weight: .medium))
+                                    Image(systemName: "arrow.right")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                            }
+                        }
+                        .background(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.50, green: 0.60, blue: 0.80), // Soft blue
+                                    Color(red: 0.40, green: 0.50, blue: 0.70)  // Medium blue
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                    }
-                    .padding(.horizontal, 32)
+                        .cornerRadius(14)
+                        .shadow(color: Color(red: 0.40, green: 0.50, blue: 0.70).opacity(0.4), radius: 10, x: 0, y: 5)
+                        .padding(.top, 8)
+                        .disabled(isSubmitting)
+                        .accessibilityIdentifier("signup_submit_button")
 
-                    // MARK: - Success Message
-
-                    if let successMessage {
-
-                        VStack(spacing: 8) {
-
-                            Image(systemName: "envelope.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(Color(red: 0.65, green: 0.78, blue: 0.73))
-
-                            Text(successMessage)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white.opacity(0.9))
-                                .multilineTextAlignment(.center)
+                        // Privacy Policy Text
+                        HStack(spacing: 4) {
+                            Image(systemName: "lock.shield")
+                                .font(.system(size: 10))
+                                .foregroundColor(.white.opacity(0.4))
+                            
+                            Text("By creating an account, you accept our Privacy Policy and Terms of Service")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.5))
                         }
-                        .padding(.horizontal, 32)
-                        .padding(.top, 16)
-                    }
-
-                    // MARK: - Error Message Display
-
-                    if let error = authManager.errorMessage {
-
-                        Text(error)
-                            .font(.system(size: 13))
-                            .foregroundColor(.red.opacity(0.9))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                            .padding(.top, 16)
-                    }
-
-                    // MARK: - Create Account Button
-
-                    Button(action: handleSignUp) {
-
-                        if isSubmitting {
-
-                            ProgressView()
-                                .tint(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-
-                        } else {
-
-                            Text("Create Account")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(Color(red: 0.18, green: 0.25, blue: 0.26))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                        }
-                    }
-                    .background(Color(red: 0.65, green: 0.78, blue: 0.73))
-                    .cornerRadius(12)
-                    .padding(.horizontal, 32)
-                    .padding(.top, 24)
-                    .disabled(isSubmitting)
-
-                    // Privacy Policy Text
-                    Text("By creating an account, you accept our Privacy Policy\nand Terms of Service")
-                        .font(.system(size: 11))
-                        .foregroundColor(.white.opacity(0.5))
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                        .padding(.top, 16)
+                        .padding(.top, 12)
+                        
+                    }
+                    .padding(.horizontal, 32)
 
-                    Spacer(minLength: 40)
+                    Spacer(minLength: 30)
 
                     // MARK: - Back to Login Link
 
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Text("Already have an account?")
-                            .font(.system(size: 16))
+                            .font(.system(size: 15))
                             .foregroundColor(.white.opacity(0.7))
 
                         Button(action: { dismiss() }) {
                             Text("Log In")
-                                .font(.system(size: 16, weight: .bold))
+                                .font(.system(size: 15, weight: .semibold))
                                 .foregroundColor(.white)
+                                .underline()
                         }
                     }
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 50)
                 }
+            }
             }
         }
         .navigationBarHidden(true)
