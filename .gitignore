@@ -3,7 +3,7 @@ xcuserdata/
 *.xcuserstate
 
 # Xcode workspace shared data (usually not needed)
-*.xcworkspace/xcshareddata/
+# Shared schemes/test plans are versioned; only user data is ignored.
 
 # Build files
 build/
