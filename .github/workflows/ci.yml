@@ -12,23 +12,19 @@ concurrency:
 env:
   SCHEME: StageTimePNW
   PROJECT: StageTimePNW.xcodeproj
+  # Pinned alongside the image. macos-26 defaults to 26.6 already; naming it
+  # keeps CI reproducible if a future image bumps the default.
+  XCODE_VERSION: "26.6"
 
 jobs:
   test:
     name: Build & unit tests
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
-      # Pinned: on macos-15 the newest Xcode (26.3) enumerates no simulator
-      # destinations at all — only "Any iOS Simulator Device" placeholders —
-      # even though simctl under the same DEVELOPER_DIR lists 20+ iPhones on
-      # the iOS 26.2 runtime. Booting them does not change it. 26.2 is the
-      # newest Xcode that pairs with a runtime the image actually ships.
       - name: Select Xcode
-        env:
-          XCODE_VERSION: "26.2"
         run: bash .github/scripts/select-xcode.sh
 
       - name: Cache SwiftPM
@@ -86,7 +82,7 @@ jobs:
 
   release-build:
     name: Release build (no ATS exceptions)
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4

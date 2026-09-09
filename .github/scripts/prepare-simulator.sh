@@ -25,6 +25,13 @@ diagnostics() {
     xcrun simctl list runtimes || true
     echo "--- simctl devices (available) ---"
     xcrun simctl list devices available || true
+    echo "--- deployment target vs installed runtimes ---"
+    # The decisive pair: xcodebuild omits every simulator whose runtime is
+    # older than the deployment target, and does not even list them as
+    # ineligible, so simctl shows devices while destinations show placeholders.
+    xcodebuild -showBuildSettings -project "$PROJECT" -scheme "$SCHEME" 2>/dev/null \
+      | grep IPHONEOS_DEPLOYMENT_TARGET | head -1 || true
+    xcrun simctl list runtimes 2>/dev/null | grep "^iOS " || true
     echo "--- xcodebuild destinations (active Xcode) ---"
     xcodebuild -showdestinations -project "$PROJECT" -scheme "$SCHEME" 2>&1 || true
 
@@ -47,36 +54,9 @@ diagnostics() {
 
 best=$(best_destination)
 
-# Fallback: simulator runtimes ship as lazily-mounted disk images, so if
-# xcodebuild sees no concrete device, booting one can force the mount. This is
-# a long shot once select-xcode.sh has already confirmed a usable destination,
-# but it costs one boot and turns a hard failure into a recovery.
-if [ -z "$best" ]; then
-  echo "No destination from xcodebuild; trying to boot a simulator to force a runtime mount" >&2
-  udid=$(xcrun simctl list devices available --json 2>/dev/null | jq -r '
-    .devices
-    | to_entries
-    | map(select(.key | test("SimRuntime\\.iOS-")))
-    | sort_by(.key | capture("iOS-(?<v>[0-9-]+)").v | split("-") | map(tonumber))
-    | reverse
-    | map(.value[] | select(.name | startswith("iPhone")))
-    | if length == 0 then empty else .[0].udid end
-  ' || true)
-
-  if [ -n "${udid:-}" ]; then
-    # Bounded so a runtime that will never mount cannot hang the job until the
-    # 45-minute step timeout.
-    xcrun simctl boot "$udid" 2>/dev/null || true
-    ( xcrun simctl bootstatus "$udid" -b >&2 2>&1 || true ) &
-    boot_pid=$!
-    ( sleep 240; kill "$boot_pid" 2>/dev/null || true ) &
-    wait "$boot_pid" 2>/dev/null || true
-    best=$(best_destination)
-  fi
-fi
-
 if [ -z "$best" ]; then
   echo "::error::xcodebuild lists no usable iOS Simulator destination for $SCHEME" >&2
+  echo "If every Xcode below reports 0, this is image-wide: no installed simulator runtime is new enough for IPHONEOS_DEPLOYMENT_TARGET." >&2
   diagnostics
   exit 1
 fi

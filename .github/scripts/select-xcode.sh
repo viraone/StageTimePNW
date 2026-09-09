@@ -12,9 +12,14 @@
 set -euo pipefail
 
 if [ -n "${XCODE_VERSION:-}" ]; then
-  app="/Applications/Xcode_${XCODE_VERSION}.app"
-  if [ ! -d "$app" ]; then
-    echo "::error::Pinned XCODE_VERSION=$XCODE_VERSION not installed ($app)" >&2
+  # Images carry both Xcode_26.6.app and Xcode_26.6.0.app; accept either so a
+  # pin does not hinge on which naming form a given image happens to use.
+  app=""
+  for candidate in "/Applications/Xcode_${XCODE_VERSION}.app" "/Applications/Xcode_${XCODE_VERSION}.0.app"; do
+    if [ -d "$candidate" ]; then app="$candidate"; break; fi
+  done
+  if [ -z "$app" ]; then
+    echo "::error::Pinned XCODE_VERSION=$XCODE_VERSION not installed" >&2
     ls -d /Applications/Xcode*.app >&2 2>/dev/null || true
     exit 1
   fi
