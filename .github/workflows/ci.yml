@@ -46,13 +46,28 @@ jobs:
       - name: Build & test
         run: |
           set -o pipefail
-          xcodebuild test \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "${{ steps.sim.outputs.destination }}" \
-            -resultBundlePath TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcbeautify --renderer github-actions
+          run_tests() {
+            xcodebuild test \
+              -project "$PROJECT" \
+              -scheme "$SCHEME" \
+              -destination "$1" \
+              -resultBundlePath TestResults.xcresult \
+              CODE_SIGNING_ALLOWED=NO \
+              | xcbeautify --renderer github-actions
+          }
+
+          run_tests "${{ steps.sim.outputs.destination }}" && exit 0
+          rc=$?
+
+          # 70 is xcodebuild's "could not resolve the destination"; a failing
+          # test suite exits 65. Only the former is worth retrying, otherwise a
+          # red suite would run twice.
+          if [ "$rc" -ne 70 ]; then
+            exit "$rc"
+          fi
+
+          echo "::warning::UDID destination was rejected; retrying by device name"
+          run_tests "${{ steps.sim.outputs.destination_by_name }}"
 
       - name: Upload test results
         if: always()

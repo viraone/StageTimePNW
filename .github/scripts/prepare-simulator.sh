@@ -1,21 +1,18 @@
 #!/usr/bin/env bash
-# Resolve a concrete iPhone simulator, boot it, and print the xcodebuild
-# destination for it as `destination=platform=iOS Simulator,id=<udid>`.
+# Print the xcodebuild destination for the best available iPhone simulator as
+# `destination=platform=iOS Simulator,id=<udid>`.
 #
-# Booting is not just a warm-up. Xcode ships simulator runtimes as disk images
-# that are mounted lazily, and `simctl` will happily list devices for a runtime
-# that xcodebuild cannot yet enumerate as a destination. That mismatch surfaces
-# as "Unable to find a destination matching the provided destination specifier"
-# with only placeholders listed, even though `simctl list devices available`
-# showed the device. Booting forces the mount, and we then confirm against
-# xcodebuild itself rather than trusting simctl.
+# The device is discovered from `xcodebuild -showdestinations`, never assumed,
+# so the workflow survives runner images renaming or retiring simulators.
 set -euo pipefail
 
 : "${PROJECT:?PROJECT must be set}"
 : "${SCHEME:?SCHEME must be set}"
 
-destinations() {
-  xcodebuild -showdestinations -project "$PROJECT" -scheme "$SCHEME" 2>&1 || true
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+best_destination() {
+  bash "$script_dir/list-simulator-destinations.sh" 2>/dev/null | head -1
 }
 
 diagnostics() {
@@ -29,47 +26,50 @@ diagnostics() {
     echo "--- simctl devices (available) ---"
     xcrun simctl list devices available || true
     echo "--- xcodebuild destinations ---"
-    destinations
+    xcodebuild -showdestinations -project "$PROJECT" -scheme "$SCHEME" 2>&1 || true
   } >&2
 }
 
-devices_json=$(xcrun simctl list devices available --json)
+best=$(best_destination)
 
-# Runtime keys look like com.apple.CoreSimulator.SimRuntime.iOS-26-5. Sort by
-# numeric version so we land on the newest installed iOS runtime, which is what
-# `OS=latest` used to express. Lexicographic order would rank 9 above 26.
-if ! sim=$(printf '%s' "$devices_json" | jq -r '
-      .devices
-      | to_entries
-      | map(select(.key | test("SimRuntime\\.iOS-")))
-      | sort_by(.key | capture("iOS-(?<v>[0-9-]+)").v | split("-") | map(tonumber))
-      | reverse
-      | map(.value[] | select(.name | startswith("iPhone")))
-      | if length == 0 then empty else "\(.[0].udid) \(.[0].name)" end
-    '); then
-  echo "::error::Could not parse the simctl device list" >&2
-  printf '%s\n' "$devices_json" >&2
-  exit 1
+# Fallback: simulator runtimes ship as lazily-mounted disk images, so if
+# xcodebuild sees no concrete device, booting one can force the mount. This is
+# a long shot once select-xcode.sh has already confirmed a usable destination,
+# but it costs one boot and turns a hard failure into a recovery.
+if [ -z "$best" ]; then
+  echo "No destination from xcodebuild; trying to boot a simulator to force a runtime mount" >&2
+  udid=$(xcrun simctl list devices available --json 2>/dev/null | jq -r '
+    .devices
+    | to_entries
+    | map(select(.key | test("SimRuntime\\.iOS-")))
+    | sort_by(.key | capture("iOS-(?<v>[0-9-]+)").v | split("-") | map(tonumber))
+    | reverse
+    | map(.value[] | select(.name | startswith("iPhone")))
+    | if length == 0 then empty else .[0].udid end
+  ' || true)
+
+  if [ -n "${udid:-}" ]; then
+    # Bounded so a runtime that will never mount cannot hang the job until the
+    # 45-minute step timeout.
+    xcrun simctl boot "$udid" 2>/dev/null || true
+    ( xcrun simctl bootstatus "$udid" -b >&2 2>&1 || true ) &
+    boot_pid=$!
+    ( sleep 240; kill "$boot_pid" 2>/dev/null || true ) &
+    wait "$boot_pid" 2>/dev/null || true
+    best=$(best_destination)
+  fi
 fi
 
-read -r udid name <<<"$sim"
-
-if [ -z "${udid:-}" ]; then
-  echo "::error::No available iPhone simulator" >&2
+if [ -z "$best" ]; then
+  echo "::error::xcodebuild lists no usable iOS Simulator destination for $SCHEME" >&2
   diagnostics
   exit 1
 fi
 
-echo "Booting $name ($udid)" >&2
-# Already-booted is reported as an error; it is exactly what we want.
-xcrun simctl boot "$udid" 2>/dev/null || true
-xcrun simctl bootstatus "$udid" -b >&2 || true
+IFS=$'\t' read -r os udid name <<<"$best"
 
-if ! destinations | grep -q "$udid"; then
-  echo "::error::xcodebuild does not list simulator $udid as a destination" >&2
-  diagnostics
-  exit 1
-fi
-
-echo "Using simulator: $name ($udid)" >&2
+echo "Using simulator: $name (iOS $os, $udid)" >&2
 echo "destination=platform=iOS Simulator,id=$udid"
+# Name-based fallback for the caller: if a UDID is ever rejected, this form
+# lets xcodebuild re-resolve the device itself.
+echo "destination_by_name=platform=iOS Simulator,name=$name,OS=$os"
