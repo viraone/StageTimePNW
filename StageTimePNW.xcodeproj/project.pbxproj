@@ -7,27 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		940B420C303D2183009BC88B /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940B420B303D2183009BC88B /* SupabaseManager.swift */; };
 		940B420F303D2485009BC88B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 940B420E303D2485009BC88B /* Supabase */; };
-		940B4211303D2567009BC88B /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940B4210303D2567009BC88B /* AuthManager.swift */; };
-		940B4213303D259C009BC88B /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940B4212303D259C009BC88B /* AuthView.swift */; };
-		948AF215304417870098D9E9 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 948AF214304417870098D9E9 /* LoginView.swift */; };
-		948AF2253044A6FF0098D9E9 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 948AF2243044A6FF0098D9E9 /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		940B420B303D2183009BC88B /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
-		940B4210303D2567009BC88B /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
-		940B4212303D259C009BC88B /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
-		948AF214304417870098D9E9 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
-		948AF2243044A6FF0098D9E9 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		94E4FF69303C5166003EA75E /* StageTimePNW.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StageTimePNW.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F60718293A4B5E /* StageTimePNWTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StageTimePNWTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		948AF21330440AE60098D9E9 /* Exceptions for "StageTimePNW" folder in "StageTimePNW" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Info-Debug.plist",
 				Info.plist,
 			);
 			target = 94E4FF68303C5166003EA75E /* StageTimePNW */;
@@ -43,7 +35,22 @@
 			path = StageTimePNW;
 			sourceTree = "<group>";
 		};
+		A1B2C3D4E5F60718293A4B5D /* StageTimePNWTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = StageTimePNWTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXContainerItemProxy section */
+		A1B2C3D4E5F60718293A4B66 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94E4FF61303C5166003EA75E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 94E4FF68303C5166003EA75E;
+			remoteInfo = StageTimePNW;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		94E4FF66303C5166003EA75E /* Frameworks */ = {
@@ -51,6 +58,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				940B420F303D2485009BC88B /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F60718293A4B63 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -67,14 +81,10 @@
 		94E4FF60303C5166003EA75E = {
 			isa = PBXGroup;
 			children = (
-				940B420B303D2183009BC88B /* SupabaseManager.swift */,
-				940B4210303D2567009BC88B /* AuthManager.swift */,
-				940B4212303D259C009BC88B /* AuthView.swift */,
 				94E4FF6B303C5166003EA75E /* StageTimePNW */,
+				A1B2C3D4E5F60718293A4B5D /* StageTimePNWTests */,
 				940B420D303D2485009BC88B /* Frameworks */,
 				94E4FF6A303C5166003EA75E /* Products */,
-				948AF214304417870098D9E9 /* LoginView.swift */,
-				948AF2243044A6FF0098D9E9 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -82,6 +92,7 @@
 			isa = PBXGroup;
 			children = (
 				94E4FF69303C5166003EA75E /* StageTimePNW.app */,
+				A1B2C3D4E5F60718293A4B5E /* StageTimePNWTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -112,6 +123,29 @@
 			productReference = 94E4FF69303C5166003EA75E /* StageTimePNW.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A1B2C3D4E5F60718293A4B5C /* StageTimePNWTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D4E5F60718293A4B5F /* Build configuration list for PBXNativeTarget "StageTimePNWTests" */;
+			buildPhases = (
+				A1B2C3D4E5F60718293A4B62 /* Sources */,
+				A1B2C3D4E5F60718293A4B63 /* Frameworks */,
+				A1B2C3D4E5F60718293A4B64 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1B2C3D4E5F60718293A4B65 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A1B2C3D4E5F60718293A4B5D /* StageTimePNWTests */,
+			);
+			name = StageTimePNWTests;
+			packageProductDependencies = (
+			);
+			productName = StageTimePNWTests;
+			productReference = A1B2C3D4E5F60718293A4B5E /* StageTimePNWTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -124,6 +158,10 @@
 				TargetAttributes = {
 					94E4FF68303C5166003EA75E = {
 						CreatedOnToolsVersion = 26.6;
+					};
+					A1B2C3D4E5F60718293A4B5C = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 94E4FF68303C5166003EA75E;
 					};
 				};
 			};
@@ -145,6 +183,7 @@
 			projectRoot = "";
 			targets = (
 				94E4FF68303C5166003EA75E /* StageTimePNW */,
+				A1B2C3D4E5F60718293A4B5C /* StageTimePNWTests */,
 			);
 		};
 /* End PBXProject section */
@@ -154,7 +193,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				948AF2253044A6FF0098D9E9 /* .gitignore in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F60718293A4B64 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,14 +210,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				940B420C303D2183009BC88B /* SupabaseManager.swift in Sources */,
-				940B4213303D259C009BC88B /* AuthView.swift in Sources */,
-				948AF215304417870098D9E9 /* LoginView.swift in Sources */,
-				940B4211303D2567009BC88B /* AuthManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F60718293A4B62 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A1B2C3D4E5F60718293A4B65 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 94E4FF68303C5166003EA75E /* StageTimePNW */;
+			targetProxy = A1B2C3D4E5F60718293A4B66 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		94E4FF72303C5166003EA75E /* Debug */ = {
@@ -300,8 +356,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StageTimePNW uses your location to show distance, drive times, and transit options to nearby open mics.";
-				INFOPLIST_FILE = StageTimePNW/Info.plist;
+				INFOPLIST_FILE = "StageTimePNW/Info-Debug.plist";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StageTimePNW uses your location to show distance, drive times, and transit options to nearby open mics.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -323,6 +378,8 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxkb2RrYmR6bGpmcGJuenJweHB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1OTEyMDMsImV4cCI6MjEwMjE2NzIwM30.QMlA_hQ-FazldCZGQ11lvXRNS77nnwHy26RSBR6rS5Q";
+				SUPABASE_URL = "https://ldodkbdzljfpbnzrpxpu.supabase.co";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -345,7 +402,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StageTimePNW uses your location to show distance, drive times, and transit options to nearby open mics.";
 				INFOPLIST_FILE = StageTimePNW/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StageTimePNW uses your location to show distance, drive times, and transit options to nearby open mics.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -368,6 +424,8 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxkb2RrYmR6bGpmcGJuenJweHB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1OTEyMDMsImV4cCI6MjEwMjE2NzIwM30.QMlA_hQ-FazldCZGQ11lvXRNS77nnwHy26RSBR6rS5Q";
+				SUPABASE_URL = "https://ldodkbdzljfpbnzrpxpu.supabase.co";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -376,6 +434,46 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		A1B2C3D4E5F60718293A4B60 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.viradeth.StageTimePNWTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StageTimePNW.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StageTimePNW";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F60718293A4B61 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.viradeth.StageTimePNWTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StageTimePNW.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StageTimePNW";
 			};
 			name = Release;
 		};
@@ -396,6 +494,15 @@
 			buildConfigurations = (
 				94E4FF75303C5166003EA75E /* Debug */,
 				94E4FF76303C5166003EA75E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B2C3D4E5F60718293A4B5F /* Build configuration list for PBXNativeTarget "StageTimePNWTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F60718293A4B60 /* Debug */,
+				A1B2C3D4E5F60718293A4B61 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

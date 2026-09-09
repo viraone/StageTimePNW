@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 import Combine
 import CoreLocation
 import UIKit
@@ -53,7 +54,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location error: \(error)")
+        Log.location.error("Location error: \(error.localizedDescription, privacy: .public)")
     }
 }
 

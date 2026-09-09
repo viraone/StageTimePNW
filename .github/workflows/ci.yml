@@ -1,0 +1,115 @@
+# macos-26 required: deployment target 26.5 needs the iOS 26.5 simulator runtime; xcodebuild silently hides older sims.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SCHEME: StageTimePNW
+  PROJECT: StageTimePNW.xcodeproj
+  # Pinned alongside the image. macos-26 defaults to 26.6 already; naming it
+  # keeps CI reproducible if a future image bumps the default.
+  XCODE_VERSION: "26.6"
+
+jobs:
+  test:
+    name: Build & unit tests
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: bash .github/scripts/select-xcode.sh
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+            ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Resolve packages
+        run: xcodebuild -resolvePackageDependencies -project "$PROJECT" -scheme "$SCHEME"
+
+      # Resolve a concrete simulator instead of hard-coding a device name that
+      # may not exist on a future image. Runs after package resolution because
+      # it asks xcodebuild to enumerate destinations, which resolves the graph.
+      - name: Prepare simulator
+        id: sim
+        run: bash .github/scripts/prepare-simulator.sh >> "$GITHUB_OUTPUT"
+
+      - name: Build & test
+        run: |
+          set -o pipefail
+          run_tests() {
+            xcodebuild test \
+              -project "$PROJECT" \
+              -scheme "$SCHEME" \
+              -destination "$1" \
+              -resultBundlePath TestResults.xcresult \
+              CODE_SIGNING_ALLOWED=NO \
+              | xcbeautify --renderer github-actions
+          }
+
+          run_tests "${{ steps.sim.outputs.destination }}" && exit 0
+          rc=$?
+
+          # 70 is xcodebuild's "could not resolve the destination"; a failing
+          # test suite exits 65. Only the former is worth retrying, otherwise a
+          # red suite would run twice.
+          if [ "$rc" -ne 70 ]; then
+            exit "$rc"
+          fi
+
+          echo "::warning::UDID destination was rejected; retrying by device name"
+          run_tests "${{ steps.sim.outputs.destination_by_name }}"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: TestResults.xcresult
+          retention-days: 7
+
+  release-build:
+    name: Release build (no ATS exceptions)
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: bash .github/scripts/select-xcode.sh
+      # This job only compiles, so it needs the simulator SDK but no booted
+      # device — a generic destination avoids depending on any specific one.
+      - name: Build Release
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+            -destination "generic/platform=iOS Simulator" -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
+      - name: Assert Release bundle has no local-networking exception
+        run: |
+          set -euo pipefail
+          APP=$(find build -name "StageTimePNW.app" -path "*Release-iphonesimulator*" | head -1)
+          # Without this the guard passes vacuously when the build lays the app
+          # down somewhere unexpected: PlistBuddy just fails on a bogus path.
+          if [ -z "$APP" ]; then
+            echo "::error::No Release app bundle found; cannot verify ATS"
+            find build -name "*.app" || true
+            exit 1
+          fi
+          if /usr/libexec/PlistBuddy -c "Print :NSAppTransportSecurity" "$APP/Info.plist" 2>/dev/null; then
+            echo "::error::Release Info.plist contains NSAppTransportSecurity"; exit 1
+          fi
+          echo "OK: no ATS exceptions in $APP"

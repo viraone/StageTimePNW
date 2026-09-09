@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 import Combine
 import Supabase
 import UserNotifications
@@ -149,7 +150,7 @@ class TonightListViewModel: ObservableObject {
                 notifyIfOnDeck()
             }
         } catch {
-            print("Failed to fetch live lineup: \(error)")
+            Log.lineup.error("Failed to fetch live lineup: \(error.localizedDescription, privacy: .public)")
             await fetchLineupFromSheetFallback()
         }
     }
@@ -177,7 +178,7 @@ class TonightListViewModel: ObservableObject {
                 statusMessage = nil
             }
         } catch {
-            print("Failed to fetch sheet lineup: \(error)")
+            Log.lineup.error("Failed to fetch sheet lineup: \(error.localizedDescription, privacy: .public)")
             if entries.isEmpty {
                 statusMessage = "The lineup could not be loaded. Pull to refresh."
             }
@@ -224,7 +225,7 @@ class TonightListViewModel: ObservableObject {
 
             await fetchLineup(quiet: true)
         } catch {
-            print("Import failed: \(error)")
+            Log.lineup.error("Import failed: \(error.localizedDescription, privacy: .public)")
             statusMessage = "Import failed. Try again."
         }
     }
@@ -243,7 +244,7 @@ class TonightListViewModel: ObservableObject {
             entries = rows
             notifyIfOnDeck()
         } catch {
-            print("Advance failed: \(error)")
+            Log.lineup.error("Advance failed: \(error.localizedDescription, privacy: .public)")
             statusMessage = "Could not advance the lineup."
         }
     }
@@ -258,7 +259,7 @@ class TonightListViewModel: ObservableObject {
             try await supabase.rpc("reset_lineup").execute()
             await fetchLineup(quiet: true)
         } catch {
-            print("Reset failed: \(error)")
+            Log.lineup.error("Reset failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
