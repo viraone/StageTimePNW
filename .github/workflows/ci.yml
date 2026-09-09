@@ -12,7 +12,6 @@ concurrency:
 env:
   SCHEME: StageTimePNW
   PROJECT: StageTimePNW.xcodeproj
-  DESTINATION: platform=iOS Simulator,name=iPhone 16 Pro,OS=latest
 
 jobs:
   test:
@@ -23,7 +22,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)/Contents/Developer" && xcodebuild -version
+        run: bash .github/scripts/select-xcode.sh
+
+      # Resolve a concrete simulator instead of hard-coding a device name that
+      # may not exist on a future image.
+      - name: Resolve simulator destination
+        id: sim
+        run: bash .github/scripts/resolve-simulator.sh >> "$GITHUB_OUTPUT"
 
       - name: Cache SwiftPM
         uses: actions/cache@v4
@@ -43,7 +48,7 @@ jobs:
           xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
+            -destination "${{ steps.sim.outputs.destination }}" \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             | xcbeautify --renderer github-actions
@@ -63,18 +68,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode
-        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)/Contents/Developer"
+        run: bash .github/scripts/select-xcode.sh
+      # This job only compiles, so it needs the simulator SDK but no booted
+      # device — a generic destination avoids depending on any specific one.
       - name: Build Release
         run: |
           set -o pipefail
           xcodebuild build \
             -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
-            -destination "$DESTINATION" -derivedDataPath build \
+            -destination "generic/platform=iOS Simulator" -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
       - name: Assert Release bundle has no local-networking exception
         run: |
+          set -euo pipefail
           APP=$(find build -name "StageTimePNW.app" -path "*Release-iphonesimulator*" | head -1)
+          # Without this the guard passes vacuously when the build lays the app
+          # down somewhere unexpected: PlistBuddy just fails on a bogus path.
+          if [ -z "$APP" ]; then
+            echo "::error::No Release app bundle found; cannot verify ATS"
+            find build -name "*.app" || true
+            exit 1
+          fi
           if /usr/libexec/PlistBuddy -c "Print :NSAppTransportSecurity" "$APP/Info.plist" 2>/dev/null; then
             echo "::error::Release Info.plist contains NSAppTransportSecurity"; exit 1
           fi
-          echo "OK: no ATS exceptions in Release"
+          echo "OK: no ATS exceptions in $APP"
