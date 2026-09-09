@@ -25,11 +25,23 @@ diagnostics() {
     xcrun simctl list runtimes || true
     echo "--- simctl devices (available) ---"
     xcrun simctl list devices available || true
-    echo "--- deployment target vs installed runtimes ---"
-    xcodebuild -showBuildSettings -project "$PROJECT" -scheme "$SCHEME" 2>/dev/null \
-      | grep IPHONEOS_DEPLOYMENT_TARGET | head -1 || true
-    echo "--- xcodebuild destinations ---"
+    echo "--- xcodebuild destinations (active Xcode) ---"
     xcodebuild -showdestinations -project "$PROJECT" -scheme "$SCHEME" 2>&1 || true
+
+    # Which Xcodes, if any, can enumerate a real simulator for this scheme?
+    # Packages are already resolved by now, so this is the cheap, truthful
+    # probe. It answers "is this Xcode-specific or image-wide?" in one run
+    # instead of costing another round trip to find out.
+    echo "--- concrete iOS Simulator destinations per Xcode ---"
+    seen=""
+    while IFS= read -r app; do
+      real=$(cd "$app" 2>/dev/null && pwd -P) || continue
+      case "$seen" in *"|$real|"*) continue ;; esac
+      seen="$seen|$real|"
+      count=$(DEVELOPER_DIR="$app/Contents/Developer" \
+        bash "$script_dir/list-simulator-destinations.sh" 2>/dev/null | wc -l | tr -d ' ')
+      echo "$app -> ${count:-0}"
+    done < <(printf '%s\n' /Applications/Xcode*.app | sort -Vr)
   } >&2
 }
 
@@ -65,10 +77,6 @@ fi
 
 if [ -z "$best" ]; then
   echo "::error::xcodebuild lists no usable iOS Simulator destination for $SCHEME" >&2
-  # The usual cause is not a missing simulator but an ineligible one:
-  # xcodebuild hides every runtime older than IPHONEOS_DEPLOYMENT_TARGET, so
-  # `simctl` shows devices while `-showdestinations` shows only placeholders.
-  echo "Most likely IPHONEOS_DEPLOYMENT_TARGET is newer than every installed simulator runtime, which makes them all ineligible. Compare the two values below." >&2
   diagnostics
   exit 1
 fi
