@@ -16,13 +16,13 @@ env:
 jobs:
   test:
     name: Build & unit tests
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: bash .github/scripts/select-xcode.sh tests
+        run: bash .github/scripts/select-xcode.sh
 
       - name: Cache SwiftPM
         uses: actions/cache@v4
@@ -79,13 +79,12 @@ jobs:
 
   release-build:
     name: Release build (no ATS exceptions)
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      # Compile-only, so this needs the simulator SDK but no device.
       - name: Select Xcode
-        run: bash .github/scripts/select-xcode.sh build
+        run: bash .github/scripts/select-xcode.sh
       # This job only compiles, so it needs the simulator SDK but no booted
       # device — a generic destination avoids depending on any specific one.
       - name: Build Release
