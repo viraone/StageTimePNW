@@ -24,12 +24,6 @@ jobs:
       - name: Select Xcode
         run: bash .github/scripts/select-xcode.sh
 
-      # Resolve a concrete simulator instead of hard-coding a device name that
-      # may not exist on a future image.
-      - name: Resolve simulator destination
-        id: sim
-        run: bash .github/scripts/resolve-simulator.sh >> "$GITHUB_OUTPUT"
-
       - name: Cache SwiftPM
         uses: actions/cache@v4
         with:
@@ -41,6 +35,13 @@ jobs:
 
       - name: Resolve packages
         run: xcodebuild -resolvePackageDependencies -project "$PROJECT" -scheme "$SCHEME"
+
+      # Resolve a concrete simulator instead of hard-coding a device name that
+      # may not exist on a future image. Runs after package resolution because
+      # it asks xcodebuild to enumerate destinations, which resolves the graph.
+      - name: Prepare simulator
+        id: sim
+        run: bash .github/scripts/prepare-simulator.sh >> "$GITHUB_OUTPUT"
 
       - name: Build & test
         run: |
